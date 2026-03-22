@@ -1,0 +1,29 @@
+{
+  "name": "remotion-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/animated-emoji": "4.0.438",
+    "@remotion/animation-utils": "4.0.438",
+    "@remotion/cli": "^4.0.438",
+    "@remotion/cloudrun": "4.0.438",
+    "@remotion/enable-scss": "4.0.438",
+    "@remotion/fonts": "4.0.438",
+    "@remotion/gif": "4.0.438",
+    "@remotion/google-fonts": "4.0.438",
+    "@remotion/install-whisper-cpp": "4.0.438",
+    "remotion": "^4.0.438"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "typescript": "^5.9.3"
+  }
+}
