@@ -63,4 +63,4 @@ pnpm db:push                      # apply migrations to your Supabase project
 pnpm dev                          # run web + mobile in parallel (turbo)
 ```
 
-> **Status:** Code + scaffold are being built now. Live infrastructure (Supabase project, Vercel) is **not** provisioned yet — connect keys in `.env.local` when ready. See the roadmap for the path to launch.
+> **Status:** Full code scaffold is in place across all packages and apps (web, mobile, edge functions, schema, design system, i18n). It has **not** been `pnpm install`ed or typechecked yet, and live infrastructure (Supabase project, Vercel) is **not** provisioned — connect keys in `.env.local` and follow the roadmap's *Provisioning checklist* to bring it online.
