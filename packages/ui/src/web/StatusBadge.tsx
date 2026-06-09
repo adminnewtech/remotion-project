@@ -25,22 +25,19 @@ export type StatusBadgeProps =
  * `status.ts` descriptor (tone + labelKey + icon).
  */
 export function StatusBadge(props: StatusBadgeProps) {
-  const { translate, renderIcon, ...rest } = props;
-  const meta: StatusDescriptor =
-    'order' in props && props.order !== undefined
-      ? orderStatusMeta(props.order)
-      : taskStatusMeta((props as { task: TaskStatus }).task);
+  const { translate, renderIcon, order, task, ...badgeProps } = props as StatusBadgeBase & {
+    order?: OrderStatus;
+    task?: TaskStatus;
+  };
 
-  // Strip the discriminant props so they don't leak onto the DOM span.
-  const { order: _order, task: _task, ...badgeProps } = rest as StatusBadgeProps;
-  void _order;
-  void _task;
+  const meta: StatusDescriptor =
+    order !== undefined ? orderStatusMeta(order) : taskStatusMeta(task as TaskStatus);
 
   const label = translate ? translate(meta.labelKey) : meta.labelKey;
   const icon = renderIcon ? renderIcon(meta.icon) : undefined;
 
   return (
-    <Badge tone={meta.tone} icon={icon} {...(badgeProps as BadgeProps)}>
+    <Badge tone={meta.tone} icon={icon} {...badgeProps}>
       {label}
     </Badge>
   );
