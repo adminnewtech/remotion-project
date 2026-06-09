@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "lib": ["ES2022"],
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@elite/types": ["../../packages/types/src/index.ts"],
+      "@elite/types/database": ["../../packages/types/src/database.types.ts"],
+      "@elite/core": ["../../packages/core/src/index.ts"],
+      "@elite/ui": ["../../packages/ui/src/index.ts"],
+      "@elite/i18n": ["../../packages/i18n/src/index.ts"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}

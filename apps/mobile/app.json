@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Elite",
+    "slug": "elite",
+    "scheme": "elite",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B1220"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.newtech.elite",
+      "config": {
+        "googleMapsApiKey": "$EXPO_PUBLIC_MAPS_API_KEY"
+      },
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
+        "NSLocationWhenInUseUsageDescription": "Elite uses your location to track deliveries and installation jobs in real time.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Drivers stream live location while a delivery is active so customers can track their order.",
+        "NSCameraUsageDescription": "Capture proof of delivery and before/after installation photos.",
+        "NSPhotoLibraryUsageDescription": "Attach photos to deliveries, installation jobs and support tickets."
+      }
+    },
+    "android": {
+      "package": "com.newtech.elite",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B1220"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "$EXPO_PUBLIC_MAPS_API_KEY"
+        }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      "expo-notifications",
+      "expo-image-picker"
+    ],
+    "extra": {
+      "supabaseUrl": "$EXPO_PUBLIC_SUPABASE_URL",
+      "supabaseAnonKey": "$EXPO_PUBLIC_SUPABASE_ANON_KEY",
+      "mapsApiKey": "$EXPO_PUBLIC_MAPS_API_KEY"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

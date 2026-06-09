@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "allowJs": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./*"],
+      "@elite/types": ["../../packages/types/src/index.ts"],
+      "@elite/types/database": ["../../packages/types/src/database.types.ts"],
+      "@elite/core": ["../../packages/core/src/index.ts"],
+      "@elite/ui": ["../../packages/ui/src/index.ts"],
+      "@elite/ui/web": ["../../packages/ui/src/web/index.ts"],
+      "@elite/i18n": ["../../packages/i18n/src/index.ts"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}

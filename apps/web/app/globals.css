@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Elite v1 — brand tokens.
+ * The shared @elite/config tailwind-preset is the source of truth for the
+ * palette; these CSS variables mirror it so plain CSS / inline styles match.
+ */
+:root {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+
+  /* Brand palette (Newtech) */
+  --brand-50: #eef4ff;
+  --brand-100: #d9e6ff;
+  --brand-500: #2563eb;
+  --brand-600: #1d4ed8;
+  --brand-700: #1e40af;
+
+  --accent-500: #f59e0b; /* installation / CTA highlight */
+
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --border: #e6e8ef;
+  --fg: #0f172a;
+  --muted: #64748b;
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04),
+    0 8px 24px -12px rgba(16, 24, 40, 0.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1120;
+    --surface: #111a2e;
+    --border: #1f2a44;
+    --fg: #e8edf7;
+    --muted: #94a3b8;
+  }
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Arabic / RTL: switch to the Arabic font stack. */
+html[dir='rtl'] body {
+  font-family: var(--font-arabic);
+}
+
+/* Logical-property helpers so layout flips automatically in RTL. */
+.flip-rtl {
+  transform: scaleX(1);
+}
+html[dir='rtl'] .flip-rtl {
+  transform: scaleX(-1);
+}
+
+/* Subtle scrollbar polish. */
+* {
+  scrollbar-width: thin;
+}
+
+/* Premium card surface used across the app. */
+@layer components {
+  .card-surface {
+    @apply rounded-2xl border bg-[var(--surface)] shadow-sm;
+    border-color: var(--border);
+  }
+  .hairline {
+    border-color: var(--border);
+  }
+}
