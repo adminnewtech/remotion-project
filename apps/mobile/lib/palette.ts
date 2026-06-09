@@ -64,56 +64,79 @@ export const palette = {
   neutral900: color(c.neutral, '900', '#0f172a'),
 } as const;
 
-type SpaceTokens = { xs?: number; sm?: number; md?: number; lg?: number; xl?: number; '2xl'?: number };
-const sp = (tokens?.spacing ?? {}) as SpaceTokens;
+/**
+ * Token sizing values come from the shared tokens as CSS `rem` strings (e.g.
+ * `'1rem'`, `'0.75rem'`) so they can feed Tailwind on web. React Native needs
+ * unitless numbers (px), so we convert rem→px at 16px/rem here, tolerating raw
+ * numbers and `px` strings too.
+ */
+const REM_PX = 16;
+function toPx(value: unknown, fallback: number): number {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const m = value.match(/^(-?\d*\.?\d+)(rem|px)?$/);
+    if (m) {
+      const n = parseFloat(m[1]!);
+      return m[2] === 'px' ? n : m[2] === 'rem' || m[2] === undefined ? n * REM_PX : n;
+    }
+  }
+  return fallback;
+}
+
+const sp = (tokens?.spacing ?? {}) as Record<string, unknown>;
 
 /** Spacing scale (px). Falls back to a 4px-based scale. */
 export const space = {
-  xs: sp.xs ?? 4,
-  sm: sp.sm ?? 8,
-  md: sp.md ?? 16,
-  lg: sp.lg ?? 24,
-  xl: sp.xl ?? 32,
-  '2xl': sp['2xl'] ?? 48,
+  xs: toPx(sp.xs, 4),
+  sm: toPx(sp.sm, 8),
+  md: toPx(sp.md, 16),
+  lg: toPx(sp.lg, 24),
+  xl: toPx(sp.xl, 32),
+  '2xl': toPx(sp['2xl'], 48),
 } as const;
 
-type RadiiTokens = { sm?: number; md?: number; lg?: number; xl?: number; '2xl'?: number; full?: number };
-const rd = (tokens?.radii ?? {}) as RadiiTokens;
+const rd = (tokens?.radii ?? {}) as Record<string, unknown>;
 
-/** Border radii (px). */
+/** Border radii (px). `full` stays a large pill value. */
 export const radii = {
-  sm: rd.sm ?? 6,
-  md: rd.md ?? 10,
-  lg: rd.lg ?? 14,
-  xl: rd.xl ?? 18,
-  '2xl': rd['2xl'] ?? 26,
-  full: rd.full ?? 9999,
+  sm: toPx(rd.sm, 4),
+  md: toPx(rd.md, 8),
+  lg: toPx(rd.lg, 12),
+  xl: toPx(rd.xl, 16),
+  '2xl': toPx(rd['2xl'], 24),
+  full: typeof rd.full === 'number' ? (rd.full as number) : 9999,
 } as const;
 
-type FontSizeTokens = {
-  xs?: number; sm?: number; base?: number; lg?: number; xl?: number;
-  '2xl'?: number; '3xl'?: number; '4xl'?: number;
-};
-const fs = (tokens?.fontSizes ?? {}) as FontSizeTokens;
+const fs = (tokens?.fontSizes ?? {}) as Record<string, unknown>;
 
 /** Font sizes (px). */
 export const fontSizes = {
-  xs: fs.xs ?? 12,
-  sm: fs.sm ?? 14,
-  base: fs.base ?? 16,
-  lg: fs.lg ?? 18,
-  xl: fs.xl ?? 20,
-  '2xl': fs['2xl'] ?? 24,
-  '3xl': fs['3xl'] ?? 30,
-  '4xl': fs['4xl'] ?? 36,
+  xs: toPx(fs.xs, 12),
+  sm: toPx(fs.sm, 14),
+  base: toPx(fs.base, 16),
+  lg: toPx(fs.lg, 18),
+  xl: toPx(fs.xl, 20),
+  '2xl': toPx(fs['2xl'], 24),
+  '3xl': toPx(fs['3xl'], 30),
+  '4xl': toPx(fs['4xl'], 36),
 } as const;
 
-type FontFamilyTokens = { sans?: string; arabic?: string; latin?: string };
-const ff = (tokens?.fontFamilies ?? {}) as FontFamilyTokens;
+const ff = (tokens?.fontFamilies ?? {}) as Record<string, unknown>;
 
-/** Font families. RN takes a single family name string per platform font. */
+/**
+ * Font families. The tokens store font stacks as arrays (CSS font-family
+ * lists); RN takes a single family name, so we pick the first entry. These
+ * names must match fonts actually loaded at runtime (e.g. via expo-font);
+ * 'System' is a safe fallback before custom fonts are bundled.
+ */
+function firstFamily(value: unknown, fallback: string): string {
+  if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
+  if (typeof value === 'string') return value;
+  return fallback;
+}
+
 export const fonts = {
-  sans: ff.sans ?? 'System',
-  arabic: ff.arabic ?? ff.sans ?? 'System',
-  latin: ff.latin ?? ff.sans ?? 'System',
+  sans: firstFamily(ff.sans, 'System'),
+  arabic: firstFamily(ff.arabic, 'System'),
+  latin: firstFamily(ff.latin, 'System'),
 } as const;

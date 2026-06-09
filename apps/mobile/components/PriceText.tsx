@@ -6,6 +6,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { formatKWD } from '../lib/theme';
 import { palette, fontSizes } from '../lib/palette';
+import { useLocale } from '../lib/i18n';
 import { AppText } from './Text';
 
 interface PriceTextProps {
@@ -23,6 +24,7 @@ const SIZE: Record<NonNullable<PriceTextProps['size']>, number> = {
 };
 
 export function PriceText({ amount, compareAt, size = 'md', tone = 'default' }: PriceTextProps) {
+  const { locale } = useLocale();
   const onSale = typeof compareAt === 'number' && compareAt > amount;
   const color =
     tone === 'inverse' ? palette.primaryFg : tone === 'primary' ? palette.primary : palette.foreground;
@@ -30,14 +32,14 @@ export function PriceText({ amount, compareAt, size = 'md', tone = 'default' }: 
   return (
     <View style={styles.row}>
       <AppText weight="700" style={{ fontSize: SIZE[size], color }}>
-        {formatKWD(amount)}
+        {formatKWD(amount, locale)}
       </AppText>
       {onSale ? (
         <AppText
           tone="muted"
           style={[styles.compare, { fontSize: SIZE[size] * 0.7 }]}
         >
-          {formatKWD(compareAt as number)}
+          {formatKWD(compareAt as number, locale)}
         </AppText>
       ) : null}
     </View>

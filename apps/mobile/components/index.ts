@@ -13,3 +13,5 @@ export { MapTracker, type LatLng } from './MapTracker';
 export { Timeline, type TimelineStep } from './Timeline';
 export { Toggle } from './Toggle';
 export { ProductCard } from './ProductCard';
+export { TabIcon } from './TabIcon';
+export { StaffProfile } from './StaffProfile';

@@ -39,14 +39,14 @@ export function Screen({
   contentStyle,
   background = palette.background,
 }: ScreenProps) {
-  const { dir } = useLocale();
-  const writingDirection = dir; // 'rtl' | 'ltr'
+  // RTL layout is driven globally by I18nManager (see lib/i18n); the Screen
+  // just lays out content. `useLocale` is read to re-render on locale change.
+  useLocale();
 
   const inner: ViewStyle = {
     flexGrow: 1,
     padding: padded ? space.md : 0,
-    writingDirection,
-  } as ViewStyle;
+  };
 
   if (scroll) {
     return (
