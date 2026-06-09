@@ -19,13 +19,16 @@ export class NotConfiguredError extends Error {
 }
 
 /** Assert required config fields are present; otherwise throw NotConfiguredError. */
-export function requireConfig<T extends Record<string, unknown>>(
+export function requireConfig<T extends object>(
   service: string,
   config: Partial<T> | undefined,
   keys: (keyof T)[],
   apiRef: string,
 ): asserts config is T {
-  const missing = keys.filter((k) => !config || config[k] == null || config[k] === '');
+  const missing = keys.filter((k) => {
+    const value = config?.[k];
+    return value == null || value === '';
+  });
   if (missing.length > 0) {
     throw new NotConfiguredError(service, missing.map(String), apiRef);
   }

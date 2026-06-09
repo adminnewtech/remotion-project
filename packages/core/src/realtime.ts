@@ -30,10 +30,10 @@ export interface SubscribeOptions {
  * Subscribe to row changes on a table. Generic over the row shape `T`.
  * Returns the channel; call `client.removeChannel(channel)` to clean up.
  */
-export function subscribeToTable<T extends Record<string, unknown>>(
+export function subscribeToTable<T = Record<string, unknown>>(
   client: EliteClient,
   table: string,
-  cb: (payload: RealtimePostgresChangesPayload<T>) => void,
+  cb: (payload: RealtimePostgresChangesPayload<T & Record<string, unknown>>) => void,
   opts: SubscribeOptions = {},
 ): RealtimeChannel {
   const schema = opts.schema ?? 'public';
