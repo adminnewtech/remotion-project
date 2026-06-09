@@ -17,7 +17,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { cart as coreCart } from '@elite/core';
 import { FREE_DELIVERY_THRESHOLD_KWD } from '@elite/types';
 
 export interface CartLine {
@@ -42,8 +41,9 @@ interface CartState {
   totals: { subtotal: number; deliveryFee: number; installationFee: number; total: number };
 }
 
-const FLAT_DELIVERY_FEE_KWD = coreCart.FLAT_DELIVERY_FEE_KWD;
-const round = coreCart.roundKwd;
+/** Mirrors @elite/core cart pricing constants (KWD / 3-decimal precision). */
+const FLAT_DELIVERY_FEE_KWD = 1.5;
+const round = (v: number) => Math.round((v + Number.EPSILON) * 1000) / 1000;
 
 const CartContext = createContext<CartState | null>(null);
 const STORAGE_KEY = 'elite.cart.v1';
