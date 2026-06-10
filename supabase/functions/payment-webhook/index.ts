@@ -91,7 +91,7 @@ serve(async (req: Request): Promise<Response> => {
     // ── Resolve the payment + its order ──────────────────────────────────
     let paymentQuery = admin
       .from("payments")
-      .select("id, order_id, status, amount, orders:order_id ( id, order_number, user_id, status )");
+      .select("id, order_id, status, amount, gateway_ref, orders:order_id ( id, order_number, user_id, status )");
 
     if (payload.payment_id) {
       paymentQuery = paymentQuery.eq("id", payload.payment_id);

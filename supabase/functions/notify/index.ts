@@ -16,6 +16,7 @@
 import { serve } from "https://deno.land/std/http/server.ts";
 import { handlePreflight, json, jsonError } from "../_shared/cors.ts";
 import { getAdminClient } from "../_shared/supabaseAdmin.ts";
+import { sendTemplate, templateForKind } from "../_shared/whatsapp.ts";
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 const EXPO_ACCESS_TOKEN = Deno.env.get("EXPO_ACCESS_TOKEN") ?? "";
@@ -30,14 +31,17 @@ interface NotifyRequest {
   data?: Record<string, unknown>;
   // Override recipient email; otherwise resolved from the profile.
   email?: string;
+  // Override recipient WhatsApp number (E.164); otherwise from the profile phone.
+  whatsapp?: string;
   // Channel toggles (default: all on).
-  channels?: { push?: boolean; email?: boolean; inApp?: boolean };
+  channels?: { push?: boolean; email?: boolean; inApp?: boolean; whatsapp?: boolean };
 }
 
 interface ChannelResult {
   in_app: boolean;
   push: { sent: number; failed: number; skipped?: string };
   email: { sent: boolean; skipped?: string };
+  whatsapp: { sent: boolean; skipped?: string };
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -62,6 +66,7 @@ serve(async (req: Request): Promise<Response> => {
     inApp: body.channels?.inApp !== false,
     push: body.channels?.push !== false,
     email: body.channels?.email !== false,
+    whatsapp: body.channels?.whatsapp !== false,
   };
 
   const admin = getAdminClient();
@@ -69,13 +74,14 @@ serve(async (req: Request): Promise<Response> => {
     in_app: false,
     push: { sent: 0, failed: 0 },
     email: { sent: false },
+    whatsapp: { sent: false },
   };
 
   try {
-    // Resolve the recipient's locale + email for channel content.
+    // Resolve the recipient's locale + email + phone for channel content.
     const { data: profile } = await admin
       .from("profiles")
-      .select("email, locale")
+      .select("email, phone, locale")
       .eq("id", body.user_id)
       .maybeSingle();
 
