@@ -21,9 +21,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const l = coerceLocale(locale);
+  const description =
+    l === 'ar'
+      ? 'نيوتك — إلكترونيات أصلية، تركيب احترافي وتوصيل سريع في الكويت.'
+      : 'Newtech — genuine electronics, professional installation and fast delivery in Kuwait.';
   return {
-    title: { default: l === 'ar' ? 'إيليت — نيوتك' : 'Elite — Newtech', template: '%s · Elite' },
-    description: t('common.appName', l),
+    metadataBase: new URL(SITE_URL),
+    title: { default: l === 'ar' ? 'نيوتك' : 'Newtech', template: '%s · Newtech' },
+    description,
+    applicationName: 'Newtech',
+    alternates: {
+      canonical: `/${l}`,
+      languages: { ar: '/ar', en: '/en', 'x-default': '/ar' },
+    },
+    openGraph: {
+      siteName: 'Newtech',
+      locale: l === 'ar' ? 'ar_KW' : 'en_KW',
+      type: 'website',
+      url: `${SITE_URL}/${l}`,
+    },
+    icons: { icon: '/icon.svg' },
   };
 }
 

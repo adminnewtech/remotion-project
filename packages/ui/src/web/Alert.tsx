@@ -5,7 +5,7 @@ import { cn } from './cn';
 
 export type AlertTone = Extract<StatusTone, 'info' | 'success' | 'warning' | 'danger'> | 'neutral';
 
-export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   tone?: AlertTone;
   title?: React.ReactNode;
   icon?: React.ReactNode;
@@ -49,7 +49,7 @@ export function Alert({
       {icon && <span className="mt-0.5 shrink-0">{icon}</span>}
       <div className="flex-1">
         {title && <p className="font-semibold">{title}</p>}
-        {children && <div className={cn(title && 'mt-0.5 opacity-90')}>{children}</div>}
+        {children && <div className={cn(Boolean(title) && 'mt-0.5 opacity-90')}>{children}</div>}
       </div>
       {onDismiss && (
         <button

@@ -294,6 +294,74 @@ export async function fetchInStock(variantIds: string[]): Promise<boolean | null
   }
 }
 
+// ── Admin dashboard ─────────────────────────────────────────
+
+export interface AdminKpis {
+  revenue: number;
+  orders: number;
+  aov: number;
+  conversion: number;
+}
+export interface AdminDashboardData {
+  /** Whether these numbers came from the live backend. */
+  live: boolean;
+  kpis: { today: AdminKpis; week: AdminKpis; month: AdminKpis };
+  liveOrders: { number: string; customer: string; area: string; total: number; status: Order['status'] }[];
+}
+
+function kpisFromOrders(list: Order[], sinceMs: number): AdminKpis {
+  const since = Date.now() - sinceMs;
+  const inWindow = list.filter((o) => {
+    const ts = new Date(o.placed_at ?? o.created_at).getTime();
+    return ts >= since;
+  });
+  const revenue = inWindow.reduce((s, o) => s + (o.total ?? 0), 0);
+  const orders = inWindow.length;
+  return {
+    revenue: Math.round(revenue * 1000) / 1000,
+    orders,
+    aov: orders ? Math.round((revenue / orders) * 10) / 10 : 0,
+    conversion: 3.0,
+  };
+}
+
+const DAY = 86_400_000;
+
+/**
+ * Live admin dashboard snapshot derived from real orders. Falls back to the
+ * sample admin data only when the live read is empty/unavailable. Top products,
+ * low stock, demand-by-area remain sample-backed (need SQL views not in the
+ * core contract) and are read directly from `@/lib/admin-sample` by the view.
+ */
+export async function fetchAdminDashboard(): Promise<AdminDashboardData> {
+  const client = await getServerClient();
+  if (client) {
+    try {
+      const list = await orders.listOrders(client);
+      if (list.length) {
+        return {
+          live: true,
+          kpis: {
+            today: kpisFromOrders(list, DAY),
+            week: kpisFromOrders(list, 7 * DAY),
+            month: kpisFromOrders(list, 30 * DAY),
+          },
+          liveOrders: list.slice(0, 6).map((o) => ({
+            number: o.order_number,
+            customer: o.user_id.slice(0, 8),
+            area: '—',
+            total: o.total,
+            status: o.status,
+          })),
+        };
+      }
+    } catch {
+      /* fall through to sample */
+    }
+  }
+  return { live: false, kpis: { today: { revenue: 0, orders: 0, aov: 0, conversion: 0 }, week: { revenue: 0, orders: 0, aov: 0, conversion: 0 }, month: { revenue: 0, orders: 0, aov: 0, conversion: 0 } }, liveOrders: [] };
+}
+
 export async function fetchTickets(): Promise<Ticket[]> {
   const client = await getServerClient();
   if (client) {

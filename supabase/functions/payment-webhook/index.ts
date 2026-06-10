@@ -18,6 +18,7 @@
 import { serve } from "https://deno.land/std/http/server.ts";
 import { handlePreflight, json, jsonError } from "../_shared/cors.ts";
 import { getAdminClient } from "../_shared/supabaseAdmin.ts";
+import { paymentConfigured, verifyPayment } from "../_shared/payment.ts";
 
 const WEBHOOK_SECRET = Deno.env.get("PAYMENT_WEBHOOK_SECRET") ?? "";
 const FUNCTIONS_BASE_URL =
@@ -123,7 +124,27 @@ serve(async (req: Request): Promise<Response> => {
       return json({ ok: true, idempotent: true, order_id: order.id, payment_status: payment.status });
     }
 
-    const isSuccess = payload.status === "paid" || payload.status === "authorized";
+    // ── Server-side verification (never trust the webhook body alone) ─────
+    // When the gateway is configured and we have a reference, re-query the
+    // gateway for the authoritative status. The verified result overrides the
+    // posted status. In sandbox (unconfigured), verifyPayment reports 'pending'
+    // and we fall back to the posted status so local flows still work.
+    const gatewayRef = payload.gateway_ref ?? (payment as any).gateway_ref ?? null;
+    let effectiveStatus: string = payload.status;
+    let verifiedRaw: Record<string, unknown> | null = payload.raw ?? null;
+    if (paymentConfigured && gatewayRef) {
+      try {
+        const verified = await verifyPayment(String(gatewayRef), Number(payment.amount));
+        if (verified.status !== "pending") {
+          effectiveStatus = verified.status; // 'paid' | 'failed'
+        }
+        if (verified.raw) verifiedRaw = verified.raw;
+      } catch (e) {
+        console.error("[payment-webhook] verifyPayment failed; using posted status", e);
+      }
+    }
+
+    const isSuccess = effectiveStatus === "paid" || effectiveStatus === "authorized";
 
     if (isSuccess) {
       // ── Mark payment + order paid ──────────────────────────────────────
@@ -131,8 +152,8 @@ serve(async (req: Request): Promise<Response> => {
         .from("payments")
         .update({
           status: "paid",
-          gateway_ref: payload.gateway_ref ?? null,
-          raw: payload.raw ?? null,
+          gateway_ref: gatewayRef,
+          raw: verifiedRaw,
         })
         .eq("id", payment.id);
 
@@ -167,8 +188,8 @@ serve(async (req: Request): Promise<Response> => {
       .from("payments")
       .update({
         status: "failed",
-        gateway_ref: payload.gateway_ref ?? null,
-        raw: payload.raw ?? null,
+        gateway_ref: gatewayRef,
+        raw: verifiedRaw,
       })
       .eq("id", payment.id);
 

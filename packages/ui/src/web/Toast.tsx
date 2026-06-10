@@ -12,7 +12,9 @@ export interface ToastOptions {
   duration?: number;
 }
 
-interface ToastRecord extends Required<Pick<ToastOptions, 'id'>>, ToastOptions {}
+interface ToastRecord extends ToastOptions {
+  id: string;
+}
 
 export interface ToastContextValue {
   /** Enqueue a toast; returns its id. */

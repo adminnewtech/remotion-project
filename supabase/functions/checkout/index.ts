@@ -326,14 +326,33 @@ serve(async (req: Request): Promise<Response> => {
     // ── Mark cart converted ──────────────────────────────────────────────
     await admin.from("carts").update({ status: "converted" }).eq("id", cart.id);
 
-    // ── Initiate payment with gateway ────────────────────────────────────
-    // TODO(payments): create a payment session with MyFatoorah / Tap here,
-    // persist gateway_ref onto the payment row, and use the returned hosted
-    // payment page URL. For COD there is no redirect. Safe sandbox fallback:
+    // ── Initiate payment with the gateway (MyFatoorah/KNET) ──────────────
+    // Config-driven adapter (_shared/payment.ts). COD → no redirect. Sandbox /
+    // unconfigured → safe placeholder URL (never throws). Persist the gateway
+    // ref onto the payment row so the webhook can verify by reference.
     let paymentUrl: string | undefined;
-    if (body.payment_method !== "cod") {
-      const baseUrl = Deno.env.get("PAYMENT_RETURN_URL") ?? "https://pay.newtech.example/checkout";
-      paymentUrl = `${baseUrl}?order=${order.order_number}&payment=${payment.id}`;
+    try {
+      const initiated = await initiatePayment({
+        orderId: order.id,
+        orderNumber: order.order_number,
+        amount: total,
+        currency: DEFAULT_CURRENCY,
+        method: body.payment_method,
+        customerName: user.email ?? undefined,
+        customerEmail: user.email ?? undefined,
+        customerMobile: user.phone ?? undefined,
+      });
+      paymentUrl = initiated.paymentUrl;
+      if (initiated.gatewayRef) {
+        await admin
+          .from("payments")
+          .update({ gateway_ref: initiated.gatewayRef })
+          .eq("id", payment.id);
+      }
+    } catch (e) {
+      // Payment-session creation failed. The order + reservation stand
+      // (status pending_payment); the customer can retry. Surface no URL.
+      console.error("[checkout] initiatePayment failed", e);
     }
 
     const result = {
