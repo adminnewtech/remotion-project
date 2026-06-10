@@ -1,0 +1,16 @@
+{
+  "name": "@elite/config",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    "./tailwind-preset": "./tailwind-preset.js",
+    "./eslint-preset": "./eslint-preset.js"
+  },
+  "scripts": {
+    "lint": "echo ok",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

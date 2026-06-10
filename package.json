@@ -1,29 +1,32 @@
 {
-  "name": "remotion-project",
+  "name": "elite-v1",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "private": true,
+  "description": "Elite v1 — unified commerce + operations super-app for Newtech (newtechq8.com)",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@remotion/animated-emoji": "4.0.438",
-    "@remotion/animation-utils": "4.0.438",
-    "@remotion/cli": "^4.0.438",
-    "@remotion/cloudrun": "4.0.438",
-    "@remotion/enable-scss": "4.0.438",
-    "@remotion/fonts": "4.0.438",
-    "@remotion/gif": "4.0.438",
-    "@remotion/google-fonts": "4.0.438",
-    "@remotion/install-whisper-cpp": "4.0.438",
-    "remotion": "^4.0.438"
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --linked > packages/types/src/database.types.ts",
+    "db:seed": "supabase db execute --file supabase/seed.sql"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
-    "@types/react": "^19.2.14",
-    "typescript": "^5.9.3"
+    "turbo": "^2.3.3",
+    "typescript": "^5.9.3",
+    "@types/node": "^25.5.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.17",
+      "@types/react-dom": "19.2.3"
+    }
   }
 }

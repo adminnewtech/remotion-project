@@ -4,4 +4,20 @@ output/
 .cache/
 .DS_Store
 *.log
+
+# env
 .env
+.env.local
+.env.*.local
+
+# build / framework
+.next/
+dist/
+.turbo/
+.expo/
+out/
+*.tsbuildinfo
+
+# supabase
+supabase/.branches/
+supabase/.temp/
