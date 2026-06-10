@@ -1,0 +1,48 @@
+name: Deploy Web to Vercel
+
+# Manual/triggered deploy of apps/web to Vercel using a VERCEL_TOKEN secret.
+# Builds locally in CI (full pnpm monorepo available, so @elite/* workspace deps
+# resolve) and uploads with `vercel deploy --prebuilt`, which bypasses the
+# project's Root Directory setting entirely.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - ".github/workflows/deploy-vercel.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      NEXT_PUBLIC_SUPABASE_URL: https://wslvotaodwdftmexkfpd.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_qUhviGOdAK1aNXzukWO13g_tJ1mV6a5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Guard — require VERCEL_TOKEN
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Add a VERCEL_TOKEN repository secret (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+      - run: pnpm install --frozen-lockfile=false
+      - run: npm i -g vercel@latest
+      - name: Build & deploy (prebuilt) from apps/web
+        working-directory: apps/web
+        run: |
+          set -e
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "Deployed: $URL"
+          echo "### ✅ Deployed to Vercel" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
