@@ -1,0 +1,35 @@
+name: Sync Catalog (Shopify → Supabase)
+
+# Full catalog import: pulls ALL active products (descriptions, image galleries,
+# variants, inventory) from Shopify into Supabase. Idempotent — safe to re-run.
+# Requires secrets: SHOPIFY_STORE, SHOPIFY_ADMIN_TOKEN, SUPABASE_SERVICE_ROLE_KEY.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+      SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+      SUPABASE_URL: https://wslvotaodwdftmexkfpd.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard — require secrets
+        run: |
+          missing=0
+          for v in SHOPIFY_STORE SHOPIFY_ADMIN_TOKEN SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret $v"; missing=1; fi
+          done
+          [ "$missing" = "0" ] || exit 1
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm add -w @supabase/supabase-js@^2.45.0
+      - name: Run catalog sync
+        run: npx -y tsx scripts/sync-catalog.ts
