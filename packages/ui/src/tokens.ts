@@ -154,7 +154,35 @@ export const shadows = {
   md: '0 4px 6px -1px rgb(15 23 42 / 0.10), 0 2px 4px -2px rgb(15 23 42 / 0.10)',
   lg: '0 10px 15px -3px rgb(15 23 42 / 0.10), 0 4px 6px -4px rgb(15 23 42 / 0.10)',
   xl: '0 20px 25px -5px rgb(15 23 42 / 0.10), 0 8px 10px -6px rgb(15 23 42 / 0.10)',
+  '2xl': '0 25px 50px -12px rgb(15 23 42 / 0.25)',
   focus: '0 0 0 3px rgb(67 56 202 / 0.35)',
+  // --- Semantic, role-based shadows (premium feel) ---
+  card: '0 1px 3px 0 rgb(15 23 42 / 0.08), 0 1px 2px -1px rgb(15 23 42 / 0.06)',
+  cardHover: '0 8px 20px -6px rgb(15 23 42 / 0.16)',
+  dropdown: '0 8px 24px -8px rgb(15 23 42 / 0.20)',
+  modal: '0 24px 48px -12px rgb(15 23 42 / 0.35)',
+  /** Electric-cyan accent glow for primary/featured CTAs and highlights. */
+  glow: '0 0 0 1px rgb(6 182 212 / 0.20), 0 8px 24px -6px rgb(6 182 212 / 0.45)',
+  /** Inner shadow for inset fields/wells. */
+  inner: 'inset 0 2px 4px 0 rgb(15 23 42 / 0.06)',
+} as const;
+
+/**
+ * Z-index scale — semantic layering so overlays never fight each other.
+ * Kept in sync with the web components (Modal uses 50, Toast uses 60).
+ */
+export const zIndex = {
+  hide: -1,
+  base: 0,
+  raised: 10,
+  sticky: 20,
+  header: 30,
+  dropdown: 40,
+  overlay: 50,
+  modal: 50,
+  drawer: 50,
+  toast: 60,
+  tooltip: 70,
 } as const;
 
 /** Bundled tokens object for convenient single-import access. */
@@ -166,6 +194,7 @@ export const tokens = {
   lineHeights,
   fontFamilies,
   shadows,
+  zIndex,
 } as const;
 
 export type Tokens = typeof tokens;

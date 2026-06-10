@@ -1,12 +1,13 @@
 /**
  * Customer Home — greeting, category grid, and a featured products rail.
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { Product } from '@elite/types';
 import { Screen, AppText, AppCard, ProductCard, Loader } from '../../components';
 import { useCategories, useProducts } from '../../lib/hooks';
-import { tileDisplay } from '../../lib/product';
+import { useProductSummaries, summaryFor, type SummaryMap } from '../../lib/productSummary';
 import { useLocale } from '../../lib/i18n';
 import { useAuth } from '../../lib/auth';
 import { palette, radii, space } from '../../lib/palette';
@@ -17,6 +18,17 @@ export default function HomeScreen() {
   const { profile } = useAuth();
   const categories = useCategories();
   const products = useProducts();
+
+  const all = products.data ?? [];
+  // Featured = first slice; New arrivals = last slice (catalog is name-ordered,
+  // so this just gives the home two distinct, populated rails).
+  const featured = useMemo(() => all.slice(0, 6), [all]);
+  const newArrivals = useMemo(() => all.slice(-6).reverse(), [all]);
+  const railProducts = useMemo(() => {
+    const seen = new Set<string>();
+    return [...featured, ...newArrivals].filter((p) => (seen.has(p.id) ? false : seen.add(p.id)));
+  }, [featured, newArrivals]);
+  const summaries = useProductSummaries(railProducts);
 
   return (
     <Screen scroll refreshing={products.isFetching} onRefresh={() => products.refetch()}>
@@ -60,21 +72,35 @@ export default function HomeScreen() {
 
       {/* Featured */}
       <SectionHeader title={t('catalog.featured')} t={t} />
-      {products.isLoading ? (
-        <Loader inline />
-      ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail}>
-          {(products.data ?? []).slice(0, 6).map((p) => {
-            const d = tileDisplay(p);
-            return (
-              <View key={p.id} style={styles.railItem}>
-                <ProductCard product={p} price={d.price} compareAt={d.compareAt} imageUrl={d.image} />
-              </View>
-            );
-          })}
-        </ScrollView>
-      )}
+      {products.isLoading ? <Loader inline /> : <ProductRail products={featured} summaries={summaries.data} />}
+
+      {/* New arrivals */}
+      {newArrivals.length > 0 ? (
+        <>
+          <SectionHeader title={t('catalog.newArrivals')} t={t} />
+          {products.isLoading ? (
+            <Loader inline />
+          ) : (
+            <ProductRail products={newArrivals} summaries={summaries.data} />
+          )}
+        </>
+      ) : null}
     </Screen>
+  );
+}
+
+function ProductRail({ products, summaries }: { products: Product[]; summaries: SummaryMap | undefined }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail}>
+      {products.map((p) => {
+        const d = summaryFor(summaries, p.id);
+        return (
+          <View key={p.id} style={styles.railItem}>
+            <ProductCard product={p} price={d.price} compareAt={d.compareAt} imageUrl={d.image} />
+          </View>
+        );
+      })}
+    </ScrollView>
   );
 }
 

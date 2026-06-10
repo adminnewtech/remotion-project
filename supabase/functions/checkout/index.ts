@@ -20,6 +20,7 @@
 import { serve } from "https://deno.land/std/http/server.ts";
 import { handlePreflight, json, jsonError } from "../_shared/cors.ts";
 import { AuthError, getAdminClient, getUserFromRequest, kwd } from "../_shared/supabaseAdmin.ts";
+import { initiatePayment } from "../_shared/payment.ts";
 
 const FREE_DELIVERY_THRESHOLD_KWD = 10;
 const DELIVERY_FEE_KWD = 1.5;

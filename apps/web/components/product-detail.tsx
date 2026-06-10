@@ -12,9 +12,12 @@ import { useCart } from '@/components/cart-store';
 export function ProductDetail({
   product,
   reviews,
+  inStock = null,
 }: {
   product: ProductWithVariants;
   reviews: Review[];
+  /** true / false from live inventory, or null when unknown (default in-stock). */
+  inStock?: boolean | null;
 }) {
   const { t, locale } = useT();
   const cart = useCart();
@@ -37,6 +40,12 @@ export function ProductDetail({
   const price = variant?.price ?? 0;
   const salePrice = variant?.sale_price ?? null;
   const unitPrice = salePrice ?? price;
+
+  // Localize a known attribute key (color/model/brand/sku) else show it raw.
+  const tAttr = (key: string) => {
+    const known = ['color', 'model', 'brand', 'sku'];
+    return known.includes(key) ? t(`product.${key}`) : key;
+  };
 
   // Collect distinct attribute keys/values for variant pickers.
   const attrKeys = useMemo(() => {
@@ -102,7 +111,11 @@ export function ProductDetail({
 
         <div className="mt-2 flex items-center gap-3">
           {avgRating != null && <Rating value={avgRating} count={reviews.length} />}
-          <StatusBadge status="paid" labelOverride={t('product.inStock')} />
+          {inStock === false ? (
+            <StatusBadge status="cancelled" labelOverride={t('product.outOfStock')} />
+          ) : (
+            <StatusBadge status="paid" labelOverride={t('product.inStock')} />
+          )}
         </div>
 
         <div className="mt-4">
@@ -113,24 +126,32 @@ export function ProductDetail({
           {t('product.warranty', { months: product.warranty_months })}
         </Badge>
 
-        {/* Variant pickers */}
+        {/* Variant pickers — one row per attribute key, distinct values. */}
         {attrKeys.map((key) => {
-          const values = Array.from(new Set(product.variants.map((v) => v.attributes[key]).filter(Boolean)));
+          const values = Array.from(
+            new Set(product.variants.map((v) => v.attributes[key]).filter(Boolean)),
+          );
           if (values.length <= 1) return null;
           return (
             <div key={key} className="mt-5">
-              <p className="mb-2 text-sm font-semibold">{t(`product.${key}`) || key}</p>
+              <p className="mb-2 text-sm font-semibold">{tAttr(key)}</p>
               <div className="flex flex-wrap gap-2">
-                {product.variants.map((v) => (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() => setVariantId(v.id)}
-                    className={`rounded-xl border px-3 py-2 text-sm transition ${v.id === variantId ? 'border-primary bg-primary-50 text-primary' : 'border-border hover:border-primary/50'}`}
-                  >
-                    {v.attributes[key]}
-                  </button>
-                ))}
+                {values.map((val) => {
+                  // First variant matching this value for the key (so clicking
+                  // selects a concrete variant).
+                  const target = product.variants.find((v) => v.attributes[key] === val);
+                  const selected = variant?.attributes[key] === val;
+                  return (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => target && setVariantId(target.id)}
+                      className={`rounded-xl border px-3 py-2 text-sm transition ${selected ? 'border-primary bg-primary-50 text-primary' : 'border-border hover:border-primary/50'}`}
+                    >
+                      {val}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           );
@@ -161,10 +182,20 @@ export function ProductDetail({
 
         {/* Add to cart */}
         <div className="mt-6 flex gap-3">
-          <Button onClick={addToCart} size="lg" className="flex-1">
-            {added ? t('common.ok') : t('product.addToCart')}
+          <Button onClick={addToCart} size="lg" className="flex-1" disabled={inStock === false}>
+            {inStock === false
+              ? t('product.outOfStock')
+              : added
+                ? t('common.ok')
+                : t('product.addToCart')}
           </Button>
-          <Button onClick={addToCart} variant="accent" size="lg" className="flex-1">
+          <Button
+            onClick={addToCart}
+            variant="accent"
+            size="lg"
+            className="flex-1"
+            disabled={inStock === false}
+          >
             {t('product.buyNow')}
           </Button>
         </div>
@@ -186,7 +217,7 @@ export function ProductDetail({
               </div>
               {Object.entries(variant.attributes).map(([k, v]) => (
                 <div key={k} className="flex justify-between rounded-lg bg-neutral-50 px-3 py-2">
-                  <dt className="text-muted">{t(`product.${k}`) || k}</dt>
+                  <dt className="text-muted">{tAttr(k)}</dt>
                   <dd className="font-medium">{v}</dd>
                 </div>
               ))}

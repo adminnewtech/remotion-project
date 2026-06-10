@@ -6,7 +6,7 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Screen, AppText, ProductCard, Field, EmptyState, Loader } from '../../components';
 import { useCategories, useProducts } from '../../lib/hooks';
-import { tileDisplay } from '../../lib/product';
+import { useProductSummaries, summaryFor } from '../../lib/productSummary';
 import { useLocale } from '../../lib/i18n';
 import { palette, radii, space } from '../../lib/palette';
 
@@ -21,6 +21,7 @@ export default function CatalogScreen() {
 
   const data = products.data ?? [];
   const chips = useMemo(() => categories.data ?? [], [categories.data]);
+  const summaries = useProductSummaries(data);
 
   return (
     <Screen padded={false}>
@@ -75,7 +76,7 @@ export default function CatalogScreen() {
             </AppText>
           }
           renderItem={({ item }) => {
-            const d = tileDisplay(item);
+            const d = summaryFor(summaries.data, item.id);
             return (
               <View style={styles.cell}>
                 <ProductCard product={item} price={d.price} compareAt={d.compareAt} imageUrl={d.image} />

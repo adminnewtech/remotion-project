@@ -7,17 +7,19 @@ import { Badge, PriceTag, Rating } from '@elite/ui/web';
 import { useT } from '@/lib/use-t';
 import { localized } from '@/lib/i18n';
 import { sampleProductMeta } from '@/lib/sample-data';
+import type { ProductDisplay } from '@/lib/product-display';
 
 /**
  * Catalog product card. Price/rating/image come from the optional `display`
- * prop (real data) or fall back to sample meta keyed by product id.
+ * prop (real, server-resolved data) or fall back to sample meta keyed by
+ * product id (dev / no-env only).
  */
 export function ProductCard({
   product,
   display,
 }: {
   product: Product;
-  display?: { image: string | null; price: number; salePrice: number | null; rating?: number; reviews?: number };
+  display?: ProductDisplay;
 }) {
   const { t, locale } = useT();
   const meta = sampleProductMeta[product.id];

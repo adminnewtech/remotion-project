@@ -35,3 +35,32 @@ export { Spinner, type SpinnerProps } from './Spinner';
 export { Avatar, type AvatarProps } from './Avatar';
 export { PriceTag, type PriceTagProps } from './PriceTag';
 export { Rating, type RatingProps } from './Rating';
+// `Stars` is a read-only display alias of `Rating` for review/score surfaces.
+export { Rating as Stars } from './Rating';
+
+// --- Added components (storefront + admin) ---
+export { Skeleton, type SkeletonProps, ProductCardSkeleton, type ProductCardSkeletonProps } from './Skeleton';
+export { Tabs, type TabsProps, type TabItem } from './Tabs';
+export { Breadcrumbs, type BreadcrumbsProps, type BreadcrumbItem } from './Breadcrumbs';
+export { Alert, type AlertProps, type AlertTone } from './Alert';
+export {
+  ToastProvider,
+  type ToastProviderProps,
+  useToast,
+  type ToastContextValue,
+  type ToastOptions,
+} from './Toast';
+export {
+  Drawer,
+  type DrawerProps,
+  type DrawerSide,
+  Sheet,
+  type SheetProps,
+} from './Drawer';
+export { Pagination, type PaginationProps } from './Pagination';
+export { RangeSlider, type RangeSliderProps } from './RangeSlider';
+export { Chip, type ChipProps, FilterChip, type FilterChipProps } from './Chip';
+export { QuantityStepper, type QuantityStepperProps } from './QuantityStepper';
+export { ImageGallery, type ImageGalleryProps, type GalleryImage } from './ImageGallery';
+export { RatingInput, type RatingInputProps } from './RatingInput';
+export { KpiCard, type KpiCardProps, type KpiTrend, StatCard, type StatCardProps } from './KpiCard';

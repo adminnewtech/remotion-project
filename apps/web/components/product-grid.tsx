@@ -1,43 +1,46 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { Product } from '@elite/types';
 import { Select, EmptyState } from '@elite/ui/web';
 import { ProductCard } from '@/components/product-card';
 import { useT } from '@/lib/use-t';
-import { sampleProductMeta } from '@/lib/sample-data';
+import type { ProductWithDisplay } from '@/lib/product-display';
 
 type SortKey = 'relevance' | 'price_low' | 'price_high' | 'rating';
 
 /**
- * Client-side filterable product grid (brand filter, installation toggle,
- * sort). Works against passed-in products + sample display meta.
+ * Client-side filterable product grid (brand, installation, price range, sort).
+ * Operates on products already paired with their display extras (live price /
+ * image), so filtering and sorting use real numbers.
  */
-export function ProductGrid({ products }: { products: Product[] }) {
+export function ProductGrid({ items }: { items: ProductWithDisplay[] }) {
   const { t } = useT();
   const [brand, setBrand] = useState('');
   const [needsInstall, setNeedsInstall] = useState(false);
+  const [maxPrice, setMaxPrice] = useState<number | ''>('');
   const [sort, setSort] = useState<SortKey>('relevance');
 
   const brands = useMemo(
-    () => Array.from(new Set(products.map((p) => p.brand).filter(Boolean))) as string[],
-    [products],
+    () => Array.from(new Set(items.map((i) => i.product.brand).filter(Boolean))) as string[],
+    [items],
+  );
+
+  const priceCeiling = useMemo(
+    () => Math.ceil(items.reduce((m, i) => Math.max(m, effective(i)), 0)),
+    [items],
   );
 
   const view = useMemo(() => {
-    let list = products.slice();
-    if (brand) list = list.filter((p) => p.brand === brand);
-    if (needsInstall) list = list.filter((p) => p.requires_installation);
-    const priceOf = (p: Product) => {
-      const m = sampleProductMeta[p.id];
-      return m?.sale_price ?? m?.price ?? 0;
-    };
-    const ratingOf = (p: Product) => sampleProductMeta[p.id]?.rating ?? 0;
-    if (sort === 'price_low') list.sort((a, b) => priceOf(a) - priceOf(b));
-    else if (sort === 'price_high') list.sort((a, b) => priceOf(b) - priceOf(a));
-    else if (sort === 'rating') list.sort((a, b) => ratingOf(b) - ratingOf(a));
+    let list = items.slice();
+    if (brand) list = list.filter((i) => i.product.brand === brand);
+    if (needsInstall) list = list.filter((i) => i.product.requires_installation);
+    if (maxPrice !== '') list = list.filter((i) => effective(i) <= maxPrice);
+    if (sort === 'price_low') list.sort((a, b) => effective(a) - effective(b));
+    else if (sort === 'price_high') list.sort((a, b) => effective(b) - effective(a));
+    else if (sort === 'rating')
+      list.sort((a, b) => (b.display.rating ?? 0) - (a.display.rating ?? 0));
     return list;
-  }, [products, brand, needsInstall, sort]);
+  }, [items, brand, needsInstall, maxPrice, sort]);
 
   return (
     <div>
@@ -48,13 +51,34 @@ export function ProductGrid({ products }: { products: Product[] }) {
           onChange={(e) => setBrand(e.target.value)}
           className="min-w-40"
         >
-          <option value="">{t('catalog.filterBrand')}: {t('common.all')}</option>
+          <option value="">
+            {t('catalog.filterBrand')}: {t('common.all')}
+          </option>
           {brands.map((b) => (
             <option key={b} value={b}>
               {b}
             </option>
           ))}
         </Select>
+
+        {priceCeiling > 0 && (
+          <label className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-sm">
+            <span className="text-muted">{t('catalog.filterPrice')}</span>
+            <input
+              type="range"
+              min={0}
+              max={priceCeiling}
+              step={1}
+              value={maxPrice === '' ? priceCeiling : maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              className="accent-primary"
+              aria-label={t('catalog.filterPrice')}
+            />
+            <span className="min-w-16 text-end font-medium">
+              {(maxPrice === '' ? priceCeiling : maxPrice).toFixed(0)} {t('common.currency')}
+            </span>
+          </label>
+        )}
 
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-sm">
           <input
@@ -85,11 +109,15 @@ export function ProductGrid({ products }: { products: Product[] }) {
         <EmptyState title={t('catalog.noProducts')} />
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {view.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {view.map(({ product, display }) => (
+            <ProductCard key={product.id} product={product} display={display} />
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function effective(i: ProductWithDisplay): number {
+  return i.display.salePrice ?? i.display.price;
 }

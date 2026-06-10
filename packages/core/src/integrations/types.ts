@@ -76,6 +76,31 @@ export interface CloudflareConfig {
   deliveryBase: string;
 }
 
+export interface PaymentConfig {
+  /** MyFatoorah API token (Bearer). */
+  apiToken: string;
+  /**
+   * API base. Sandbox: https://apitest.myfatoorah.com
+   * Live (KW region): https://api.myfatoorah.com
+   */
+  apiBase: string;
+  /** URL the gateway redirects the customer to on success. */
+  callbackUrl?: string;
+  /** URL the gateway redirects the customer to on failure/cancel. */
+  errorUrl?: string;
+  /** Shared secret used to verify gateway webhook callbacks (HMAC). */
+  webhookSecret?: string;
+}
+
+export interface WhatsAppConfig {
+  /** WhatsApp Cloud API phone-number id (the sender). */
+  phoneNumberId: string;
+  /** Permanent / system-user access token. */
+  accessToken: string;
+  /** Graph API version, e.g. v19.0 (adapter applies a default). */
+  apiVersion?: string;
+}
+
 // ── Adapter operation result/argument shapes ──────────────────────────────
 
 export interface ZohoInvoiceLine {
@@ -135,4 +160,69 @@ export interface CloudflareResizeOptions {
   fit?: 'scale-down' | 'contain' | 'cover' | 'crop' | 'pad';
   quality?: number;
   format?: 'auto' | 'webp' | 'avif' | 'jpeg' | 'png';
+}
+
+// ── Payment (MyFatoorah / KNET) shapes ─────────────────────────────────────
+
+/** Supported payment methods (mirrors the DB `payment_method` enum). */
+export type PaymentMethodCode = 'knet' | 'apple_pay' | 'google_pay' | 'card' | 'cod';
+
+export interface InitiatePaymentInput {
+  /** Internal order id (round-tripped via the gateway reference). */
+  orderId: string;
+  /** Human-facing order number (NT-xxxxx). */
+  orderNumber: string;
+  /** Charge amount in KWD (3 decimals). DB-computed; never client-supplied. */
+  amount: number;
+  /** ISO-4217 currency. Defaults to KWD. */
+  currency?: string;
+  method: PaymentMethodCode;
+  /** Customer contact (used by the gateway for receipts / 3DS). */
+  customerName?: string;
+  customerEmail?: string;
+  customerMobile?: string;
+  /** Override the configured success/error return URLs for this charge. */
+  callbackUrl?: string;
+  errorUrl?: string;
+}
+
+export interface InitiatePaymentResult {
+  /**
+   * Hosted payment-page URL to redirect the customer to. Undefined for COD
+   * (no redirect). In sandbox without config, a safe placeholder URL.
+   */
+  paymentUrl?: string;
+  /** Gateway reference (e.g. MyFatoorah InvoiceId) to persist on the payment. */
+  gatewayRef?: string;
+  /** True when no live gateway call was made (COD or sandbox fallback). */
+  sandbox?: boolean;
+}
+
+export interface VerifyPaymentInput {
+  /** Gateway reference / key returned at initiation (e.g. MyFatoorah Key/InvoiceId). */
+  gatewayRef: string;
+  /** Optional expected amount for a defensive cross-check (KWD). */
+  expectedAmount?: number;
+}
+
+export interface VerifyPaymentResult {
+  status: 'paid' | 'failed' | 'pending';
+  /** Amount the gateway reports as captured (KWD), when known. */
+  amount?: number;
+  gatewayRef?: string;
+  /** Raw gateway payload for auditing on the payment row. */
+  raw?: Record<string, unknown>;
+}
+
+// ── WhatsApp Cloud API shapes ──────────────────────────────────────────────
+
+export interface WhatsAppTemplateInput {
+  /** Recipient in E.164 (e.g. 9655XXXXXXX). */
+  to: string;
+  /** Template name as approved in WhatsApp Manager. */
+  template: string;
+  /** Template language code, e.g. 'ar' or 'en'. Default 'ar'. */
+  language?: string;
+  /** Ordered body parameter values substituted into {{1}}, {{2}}, … */
+  bodyParams?: string[];
 }

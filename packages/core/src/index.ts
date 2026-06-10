@@ -18,6 +18,7 @@ export * from './orders';
 export * from './tasks';
 export * from './support';
 export * from './notifications';
+export * from './analytics';
 
 // Realtime
 export * from './realtime';
@@ -44,6 +45,7 @@ import * as tasksNs from './tasks';
 import * as supportNs from './support';
 import * as realtimeNs from './realtime';
 import * as notificationsNs from './notifications';
+import * as analyticsNs from './analytics';
 
 export const auth = authNs;
 export const catalog = catalogNs;
@@ -53,3 +55,4 @@ export const tasks = tasksNs;
 export const support = supportNs;
 export const realtime = realtimeNs;
 export const notifications = notificationsNs;
+export const analytics = analyticsNs;

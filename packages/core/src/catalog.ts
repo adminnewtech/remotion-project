@@ -151,3 +151,81 @@ export async function searchProducts(client: EliteClient, q: string): Promise<Pr
   if (error) throw error;
   return (data ?? []) as Product[];
 }
+
+// ── Ranked search via the `search_products` RPC (migration 0009) ────────────
+
+/** A single ranked search hit: product fields + primary image, price, rank. */
+export interface ProductSearchHit {
+  id: string;
+  category_id: string | null;
+  name_ar: string;
+  name_en: string;
+  brand: string | null;
+  slug: string;
+  requires_installation: boolean;
+  installation_fee: number;
+  warranty_months: number;
+  /** Effective price (min active variant, sale_price honored). May be null. */
+  price: number | null;
+  sale_price: number | null;
+  /** URL of the lowest-sort image media row, or null. */
+  primary_image: string | null;
+  /** Combined full-text + trigram relevance score. */
+  rank: number;
+}
+
+export interface SearchProductsParams {
+  q?: string;
+  categoryId?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Ranked product search using the `search_products` SQL function. Combines the
+ * `search_tsv` full-text column with `pg_trgm` similarity (so typos/fuzzy names
+ * still match) and returns each product with its primary image and price,
+ * already filtered to active rows and ordered by relevance. Supports category /
+ * brand / price-range faceting.
+ *
+ * Falls back to the empty list when neither a query nor any filter is supplied
+ * is *not* enforced — with no `q` the RPC returns the (filtered) catalog ranked
+ * by name, which is the desired "browse with filters" behaviour.
+ */
+export async function searchProductsRanked(
+  client: EliteClient,
+  params: SearchProductsParams = {},
+): Promise<ProductSearchHit[]> {
+  const { data, error } = await client.rpc('search_products', {
+    p_q: params.q?.trim() ?? null,
+    p_category_id: params.categoryId ?? null,
+    p_brand: params.brand ?? null,
+    p_min_price: params.minPrice ?? null,
+    p_max_price: params.maxPrice ?? null,
+    p_limit: params.limit ?? 30,
+    p_offset: params.offset ?? 0,
+  });
+  if (error) throw error;
+  return (data ?? []) as ProductSearchHit[];
+}
+
+/**
+ * Distinct active brands for the catalog's brand filter, alphabetically.
+ * Reads from the products table (RLS scopes to active rows for customers).
+ */
+export async function listBrands(client: EliteClient): Promise<string[]> {
+  const { data, error } = await client
+    .from('products')
+    .select('brand')
+    .eq('is_active', true)
+    .not('brand', 'is', null);
+  if (error) throw error;
+  const brands = new Set<string>();
+  for (const row of (data ?? []) as { brand: string | null }[]) {
+    if (row.brand) brands.add(row.brand);
+  }
+  return [...brands].sort((a, b) => a.localeCompare(b));
+}

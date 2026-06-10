@@ -5,6 +5,7 @@ import { Cairo, Inter } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import { coerceLocale, isLocale, dir, t } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
+import { SITE_URL } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 const cairo = Cairo({ subsets: ['arabic', 'latin'], variable: '--font-arabic', display: 'swap' });

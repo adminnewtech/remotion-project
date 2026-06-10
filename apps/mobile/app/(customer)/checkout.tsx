@@ -4,7 +4,7 @@
  * Function via @elite/core; demo mode simulates a placed order.
  */
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { checkout } from '@elite/core';
 import type { PaymentMethod } from '@elite/types';
@@ -15,6 +15,7 @@ import { useAuth } from '../../lib/auth';
 import { useLocale } from '../../lib/i18n';
 import { getSupabase } from '../../lib/supabase';
 import { hasLiveBackend } from '../../lib/env';
+import { createAddress, slotToWindow } from '../../lib/address';
 import { palette, radii, space } from '../../lib/palette';
 
 const PAYMENT_METHODS: PaymentMethod[] = ['knet', 'apple_pay', 'google_pay', 'card', 'cod'];
@@ -27,6 +28,7 @@ export default function CheckoutScreen() {
   const { items, totals, cartId, clear } = useCart();
 
   const needsInstall = items.some((i) => i.with_installation);
+  const [governorate, setGovernorate] = useState('');
   const [area, setArea] = useState('');
   const [block, setBlock] = useState('');
   const [street, setStreet] = useState('');
@@ -37,8 +39,16 @@ export default function CheckoutScreen() {
   const [busy, setBusy] = useState(false);
 
   const placeOrder = async () => {
+    if (!area.trim()) {
+      Alert.alert(t('checkout.selectAddress'), t('checkout.area'));
+      return;
+    }
     if (!deliverySlot) {
       Alert.alert(t('checkout.selectSlot'));
+      return;
+    }
+    if (needsInstall && !installSlot) {
+      Alert.alert(t('checkout.selectSlot'), t('checkout.installationSlot'));
       return;
     }
     setBusy(true);
@@ -46,16 +56,29 @@ export default function CheckoutScreen() {
       if (hasLiveBackend) {
         const client = getSupabase();
         if (!client || !cartId || !profile?.id) throw new Error('Checkout unavailable.');
+
+        // Persist the entered Kuwait address to get a real address_id.
+        const addressId = await createAddress(profile.id, {
+          governorate: governorate.trim() || undefined,
+          area: area.trim(),
+          block: block.trim() || undefined,
+          street: street.trim() || undefined,
+          building: building.trim() || undefined,
+        });
+
         const result = await checkout(client, {
           cart_id: cartId,
-          address_id: profile.id, // NOTE: a real address row id; demo uses profile id placeholder
+          address_id: addressId,
           payment_method: method,
-          delivery_slot: { start: new Date().toISOString(), end: new Date().toISOString() },
-          installation_slot: needsInstall
-            ? { start: new Date().toISOString(), end: new Date().toISOString() }
-            : undefined,
+          delivery_slot: slotToWindow(deliverySlot),
+          installation_slot: needsInstall && installSlot ? slotToWindow(installSlot) : undefined,
         });
         clear();
+
+        // KNET / card flows return a hosted payment URL — hand off to it.
+        if (result.payment_url) {
+          await Linking.openURL(result.payment_url);
+        }
         Alert.alert(t('checkout.orderPlaced'), t('checkout.orderPlacedHint', { orderNumber: result.order_number }));
         router.replace(`/(customer)/order/${result.order_id}`);
       } else {
@@ -78,6 +101,7 @@ export default function CheckoutScreen() {
         {/* Address */}
         <SectionTitle text={t('checkout.selectAddress')} />
         <AppCard style={styles.section}>
+          <Field label={t('checkout.governorate')} value={governorate} onChangeText={setGovernorate} />
           <Field label={t('checkout.area')} value={area} onChangeText={setArea} />
           <View style={styles.grid}>
             <View style={styles.col}>
