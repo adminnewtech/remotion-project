@@ -12,13 +12,18 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
   label?: string;
   hint?: string;
   error?: string;
-  options: SelectOption[];
+  /**
+   * Declarative option list. Optional: callers may instead pass `<option>`
+   * elements as `children` (e.g. for custom labels, groups, or a leading
+   * "all" entry).
+   */
+  options?: SelectOption[];
   placeholder?: string;
   containerClassName?: string;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { label, hint, error, options, placeholder, containerClassName, className, id, ...props },
+  { label, hint, error, options, placeholder, containerClassName, className, id, children, ...props },
   ref,
 ) {
   const autoId = React.useId();
@@ -49,11 +54,13 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
             {placeholder}
           </option>
         )}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-            {opt.label}
-          </option>
-        ))}
+        {options
+          ? options.map((opt) => (
+              <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                {opt.label}
+              </option>
+            ))
+          : children}
       </select>
       {error ? (
         <p className="text-xs text-danger">{error}</p>

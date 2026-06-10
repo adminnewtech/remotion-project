@@ -9,12 +9,6 @@ const nextConfig = {
     '@elite/i18n',
     '@elite/config',
   ],
-  // TODO(elite): TEMPORARY for preview builds. The monorepo was built in
-  // parallel against documented contracts; a few cross-package type mismatches
-  // (e.g. duplicate @types/react, Next 15 LayoutProps) remain. Remove these two
-  // flags once `pnpm typecheck` is green so type errors fail the build again.
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },

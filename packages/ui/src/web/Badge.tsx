@@ -4,7 +4,29 @@ import type { StatusTone } from '../status';
 import { cn } from './cn';
 
 export type BadgeTone = StatusTone;
-export type BadgeVariant = 'solid' | 'soft' | 'outline';
+/** Visual style of the badge. */
+export type BadgeStyle = 'solid' | 'soft' | 'outline';
+/**
+ * The `variant` prop accepts either a visual style (`solid`/`soft`/`outline`)
+ * or, as a convenience, a tone name (`info`/`danger`/...). When a tone name is
+ * passed it sets the tone and uses the default `soft` style — this is the
+ * shorthand most call sites use (e.g. `<Badge variant="info">`).
+ */
+export type BadgeVariant = BadgeStyle | BadgeTone;
+
+const TONE_NAMES: readonly BadgeTone[] = [
+  'neutral',
+  'info',
+  'primary',
+  'accent',
+  'success',
+  'warning',
+  'danger',
+];
+
+function isTone(value: BadgeVariant): value is BadgeTone {
+  return (TONE_NAMES as readonly string[]).includes(value);
+}
 
 /** soft (default) tone classes — subtle bg + readable text. */
 const softClasses: Record<BadgeTone, string> = {
@@ -44,15 +66,26 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 export function Badge({
-  tone = 'neutral',
+  tone,
   variant = 'soft',
   icon,
   className,
   children,
   ...props
 }: BadgeProps) {
+  // `variant` may carry a tone name as a shorthand. Resolve the effective tone
+  // and style: an explicit `tone` prop wins; otherwise a tone-named `variant`
+  // sets the tone (with the default `soft` style).
+  const variantIsTone = isTone(variant);
+  const effectiveTone: BadgeTone = tone ?? (variantIsTone ? (variant as BadgeTone) : 'neutral');
+  const style: BadgeStyle = variantIsTone ? 'soft' : (variant as BadgeStyle);
+
   const toneClasses =
-    variant === 'solid' ? solidClasses[tone] : variant === 'outline' ? outlineClasses[tone] : softClasses[tone];
+    style === 'solid'
+      ? solidClasses[effectiveTone]
+      : style === 'outline'
+        ? outlineClasses[effectiveTone]
+        : softClasses[effectiveTone];
   return (
     <span
       className={cn(

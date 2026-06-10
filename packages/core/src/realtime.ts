@@ -46,7 +46,7 @@ export function subscribeToTable<T = Record<string, unknown>>(
   channel.on(
     'postgres_changes' as never,
     { event, schema, table, ...(opts.filter ? { filter: opts.filter } : {}) } as never,
-    ((payload: RealtimePostgresChangesPayload<T>) => cb(payload)) as never,
+    ((payload: RealtimePostgresChangesPayload<T & Record<string, unknown>>) => cb(payload)) as never,
   );
   channel.subscribe();
   return channel;

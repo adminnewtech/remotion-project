@@ -16,7 +16,14 @@ import React, {
 import { I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { t as translate, isRTL as localeIsRTL, dir as localeDir } from '@elite/i18n';
+import type { TranslationKey } from '@elite/i18n';
 import type { Locale } from '@elite/types';
+
+/**
+ * Known translation keys autocomplete via `TranslationKey`; dynamically-built
+ * keys are also allowed because `t()` falls back to the raw key when missing.
+ */
+type LooseKey = TranslationKey | (string & {});
 
 const STORAGE_KEY = 'elite.locale';
 const DEFAULT_LOCALE: Locale = 'ar';
@@ -28,7 +35,7 @@ interface LocaleContextValue {
   setLocale: (next: Locale) => Promise<void>;
   toggleLocale: () => Promise<void>;
   /** Translate a key in the current locale. */
-  t: (key: string, vars?: Record<string, string | number>) => string;
+  t: (key: LooseKey, vars?: Record<string, string | number>) => string;
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -64,7 +71,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       dir: localeDir(locale),
       setLocale,
       toggleLocale,
-      t: (key, vars) => translate(key, locale, vars),
+      t: (key, vars) => translate(key as TranslationKey, locale, vars),
     }),
     [locale, setLocale, toggleLocale],
   );

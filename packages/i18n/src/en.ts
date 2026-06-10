@@ -374,4 +374,14 @@ export const en = {
   },
 } as const;
 
-export type Dictionary = typeof en;
+/**
+ * Deeply widens the literal types produced by `as const` to `string` while
+ * preserving the exact key shape. This lets other locale dictionaries (e.g.
+ * `ar.ts`) mirror the same keys with different string values, while still
+ * surfacing any missing/extra key as a compile error.
+ */
+type Widen<T> = {
+  [K in keyof T]: T[K] extends string ? string : Widen<T[K]>;
+};
+
+export type Dictionary = Widen<typeof en>;

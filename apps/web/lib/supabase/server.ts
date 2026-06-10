@@ -6,7 +6,7 @@ import 'server-only';
  * Returns `null` when env is absent → callers fall back to sample data.
  */
 import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { EliteClient } from '@elite/core';
 import type { Database } from '@elite/types/database';
 import { PUBLIC_ENV, hasSupabaseEnv } from '@/lib/env';
@@ -22,7 +22,7 @@ export async function getServerClient(): Promise<EliteClient | null> {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(toSet) {
+        setAll(toSet: { name: string; value: string; options: CookieOptions }[]) {
           // RSC can't always set cookies; ignore failures (middleware refreshes).
           try {
             toSet.forEach(({ name, value, options }) =>

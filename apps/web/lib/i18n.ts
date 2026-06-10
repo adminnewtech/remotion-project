@@ -17,14 +17,21 @@ export function coerceLocale(value: string | undefined): Locale {
   return isLocale(value) ? value : DEFAULT_LOCALE;
 }
 
-/** Pick the localized field from a `{ name_ar, name_en }`-style record. */
-export function localized<
-  T extends Record<string, unknown>,
-  K extends string,
->(row: T, base: K, locale: Locale): string {
-  const key = `${base}_${locale}` as keyof T;
-  const fallback = `${base}_en` as keyof T;
-  return (row[key] ?? row[fallback] ?? '') as string;
+/**
+ * Pick the localized field from a `{ name_ar, name_en }`-style record.
+ *
+ * Constrained to `object` (rather than `Record<string, unknown>`) so plain
+ * domain interfaces like `Category`/`Product` — which have no index signature —
+ * are accepted directly without casting at every call site.
+ */
+export function localized<T extends object, K extends string>(
+  row: T,
+  base: K,
+  locale: Locale,
+): string {
+  const record = row as Record<string, unknown>;
+  const value = record[`${base}_${locale}`] ?? record[`${base}_en`] ?? '';
+  return value as string;
 }
 
 export { baseT as t, isRTL, dir, messages };
