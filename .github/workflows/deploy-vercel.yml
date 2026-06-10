@@ -4,7 +4,7 @@ name: Deploy Web to Vercel
 # Builds locally in CI (full pnpm monorepo available, so @elite/* workspace deps
 # resolve) and uploads with `vercel deploy --prebuilt`, which bypasses the
 # project's Root Directory setting entirely.
-# deploy run: 1
+# deploy run: 2
 
 on:
   workflow_dispatch:
