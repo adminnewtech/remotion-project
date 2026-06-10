@@ -1,10 +1,8 @@
 name: Deploy Web to Vercel
 
-# Manual/triggered deploy of apps/web to Vercel using a VERCEL_TOKEN secret.
-# Builds locally in CI (full pnpm monorepo available, so @elite/* workspace deps
-# resolve) and uploads with `vercel deploy --prebuilt`, which bypasses the
-# project's Root Directory setting entirely.
-# deploy run: 2
+# Configures the git-connected Vercel project (Root Directory = apps/web) via the
+# Vercel API, then triggers a REMOTE build+deploy from the latest master commit.
+# Remote build uses Vercel's native pnpm-workspace support (no prebuilt/hoist hacks).
 
 on:
   workflow_dispatch:
@@ -20,30 +18,41 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      NEXT_PUBLIC_SUPABASE_URL: https://wslvotaodwdftmexkfpd.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_qUhviGOdAK1aNXzukWO13g_tJ1mV6a5
+      TEAM: team_znAIKWJrPrUVqKc4NSoOhXc7
+      PROJECT: prj_CoXKjuMqq0QCeqhqtc6POqntYTsK
+      REPO_ID: "1188629431"
+      SUPABASE_URL: https://wslvotaodwdftmexkfpd.supabase.co
+      SUPABASE_ANON: sb_publishable_qUhviGOdAK1aNXzukWO13g_tJ1mV6a5
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
       - name: Guard — require VERCEL_TOKEN
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo "::error::Add a VERCEL_TOKEN repository secret (Settings → Secrets and variables → Actions)."
-            exit 1
+            echo "::error::Add a VERCEL_TOKEN repository secret."; exit 1
           fi
-      - run: pnpm install --frozen-lockfile=false
-      - run: npm i -g vercel@latest
-      - name: Build & deploy (prebuilt) from apps/web
-        working-directory: apps/web
+
+      - name: Configure project (Root Directory = apps/web, framework = nextjs)
         run: |
-          set -e
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-          vercel build --prod --token="$VERCEL_TOKEN"
-          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
-          echo "Deployed: $URL"
-          echo "### ✅ Deployed to Vercel" >> "$GITHUB_STEP_SUMMARY"
-          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
+          curl -fsS -X PATCH "https://api.vercel.com/v9/projects/$PROJECT?teamId=$TEAM" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+            -d '{"rootDirectory":"apps/web","framework":"nextjs"}' | head -c 400
+          echo
+
+      - name: Upsert Supabase env vars
+        run: |
+          for pair in "NEXT_PUBLIC_SUPABASE_URL:$SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY:$SUPABASE_ANON"; do
+            key="${pair%%:*}"; val="${pair#*:}"
+            curl -sS -X POST "https://api.vercel.com/v10/projects/$PROJECT/env?upsert=true&teamId=$TEAM" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+              -d "{\"key\":\"$key\",\"value\":\"$val\",\"type\":\"plain\",\"target\":[\"production\",\"preview\",\"development\"]}" >/dev/null || true
+          done
+          echo "env upserted"
+
+      - name: Trigger production deployment (remote build from master)
+        run: |
+          RESP=$(curl -fsS -X POST "https://api.vercel.com/v13/deployments?teamId=$TEAM&forceNew=1" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"name\":\"remotion-project-6dvr\",\"project\":\"$PROJECT\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"repoId\":\"$REPO_ID\",\"ref\":\"master\"}}")
+          echo "$RESP" | head -c 800
+          URL=$(echo "$RESP" | jq -r '.url // empty')
+          echo "### 🚀 Vercel deployment triggered" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://$URL" >> "$GITHUB_STEP_SUMMARY"
