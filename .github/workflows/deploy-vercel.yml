@@ -34,7 +34,7 @@ jobs:
         run: |
           curl -fsS -X PATCH "https://api.vercel.com/v9/projects/$PROJECT?teamId=$TEAM" \
             -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
-            -d '{"rootDirectory":"apps/web","framework":"nextjs","nodeVersion":"20.x","installCommand":"cd ../.. && pnpm install --filter @elite/web...","buildCommand":"next build"}' | head -c 400
+            -d '{"rootDirectory":"apps/web","framework":"nextjs","nodeVersion":"20.x","installCommand":"cd ../.. && pnpm install --no-frozen-lockfile --filter @elite/web...","buildCommand":"next build"}' | head -c 400
           echo
 
       - name: Upsert Supabase env vars
