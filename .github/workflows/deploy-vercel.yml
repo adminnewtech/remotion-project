@@ -1,8 +1,9 @@
 name: Deploy Web to Vercel
 
-# Configures the git-connected Vercel project (Root Directory = apps/web) via the
-# Vercel API, then triggers a REMOTE build+deploy from the latest master commit.
-# Remote build uses Vercel's native pnpm-workspace support (no prebuilt/hoist hacks).
+# Configures the git-connected Vercel project via the Vercel API (Root Directory,
+# framework, an install command scoped to ONLY the web app + its workspace deps,
+# and Node 20), then triggers a REMOTE build+deploy from the latest master commit.
+# Scoping install avoids pulling Expo/React-Native + Remotion deps that break the build.
 
 on:
   workflow_dispatch:
@@ -26,15 +27,13 @@ jobs:
     steps:
       - name: Guard — require VERCEL_TOKEN
         run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "::error::Add a VERCEL_TOKEN repository secret."; exit 1
-          fi
+          if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add VERCEL_TOKEN secret"; exit 1; fi
 
-      - name: Configure project (Root Directory = apps/web, framework = nextjs)
+      - name: Configure project (root dir, framework, scoped install, node 20)
         run: |
           curl -fsS -X PATCH "https://api.vercel.com/v9/projects/$PROJECT?teamId=$TEAM" \
             -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
-            -d '{"rootDirectory":"apps/web","framework":"nextjs"}' | head -c 400
+            -d '{"rootDirectory":"apps/web","framework":"nextjs","nodeVersion":"20.x","installCommand":"cd ../.. && pnpm install --filter @elite/web...","buildCommand":"next build"}' | head -c 500
           echo
 
       - name: Upsert Supabase env vars
@@ -49,10 +48,10 @@ jobs:
 
       - name: Trigger production deployment (remote build from master)
         run: |
-          RESP=$(curl -fsS -X POST "https://api.vercel.com/v13/deployments?teamId=$TEAM&forceNew=1" \
+          RESP=$(curl -fsS -X POST "https://api.vercel.com/v13/deployments?teamId=$TEAM&forceNew=1&skipAutoDetectionConfirmation=1" \
             -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
             -d "{\"name\":\"remotion-project-6dvr\",\"project\":\"$PROJECT\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"repoId\":\"$REPO_ID\",\"ref\":\"master\"}}")
-          echo "$RESP" | head -c 800
+          echo "$RESP" | head -c 600
           URL=$(echo "$RESP" | jq -r '.url // empty')
           echo "### 🚀 Vercel deployment triggered" >> "$GITHUB_STEP_SUMMARY"
           echo "https://$URL" >> "$GITHUB_STEP_SUMMARY"
