@@ -176,6 +176,29 @@ serve(async (req: Request): Promise<Response> => {
       }
     }
 
+    // ── 4. WhatsApp template (order milestones) ──────────────────────────
+    // Only milestone kinds map to an approved template; others skip WhatsApp.
+    if (channels.whatsapp) {
+      const template = templateForKind(body.kind);
+      const to = body.whatsapp ?? profile?.phone ?? null;
+      if (!template) {
+        result.whatsapp.skipped = "no_template_for_kind";
+      } else if (!to) {
+        result.whatsapp.skipped = "no_phone";
+      } else {
+        // Body param {{1}} = order number (fallback to a blank string).
+        const orderNumber = String((body.data as any)?.order_number ?? "");
+        const wa = await sendTemplate({
+          to: normalizePhone(to),
+          template,
+          language: locale,
+          bodyParams: orderNumber ? [orderNumber] : [],
+        });
+        result.whatsapp.sent = wa.sent;
+        if (!wa.sent && wa.skipped) result.whatsapp.skipped = wa.skipped;
+      }
+    }
+
     return json({ ok: true, notification_id: notificationId, channels: result }, 201);
   } catch (err) {
     console.error("[notify] error", err);
@@ -189,6 +212,16 @@ serve(async (req: Request): Promise<Response> => {
 function pick(locale: "ar" | "en", en?: string, ar?: string): string | undefined {
   if (locale === "en") return en ?? ar ?? undefined;
   return ar ?? en ?? undefined;
+}
+
+/**
+ * Normalize a Kuwait phone number to WhatsApp E.164 (no '+'). Accepts local
+ * 8-digit numbers and prefixes the 965 country code; strips '+'/spaces.
+ */
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/[^\d]/g, "");
+  if (digits.length === 8) return `965${digits}`;
+  return digits;
 }
 
 /**

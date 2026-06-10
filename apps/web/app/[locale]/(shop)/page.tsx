@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { ReactElement } from 'react';
 import type { Metadata } from 'next';
 import { coerceLocale, localized, t } from '@/lib/i18n';
 import { fetchCategories, fetchProducts, withDisplay } from '@/lib/data';
@@ -204,7 +205,7 @@ function ProductRow({
 
 function BenefitIcon({ name }: { name: string }) {
   const common = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
-  const paths: Record<string, JSX.Element> = {
+  const paths: Record<string, ReactElement> = {
     shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />,
     wrench: <path d="M14.7 6.3a4 4 0 0 0-5 5L4 17l3 3 5.7-5.7a4 4 0 0 0 5-5l-2.4 2.4-2.6-.4-.4-2.6 2.4-2.4Z" />,
     truck: <><path d="M1 3h13v13H1zM14 8h4l3 3v5h-7" /><circle cx="5.5" cy="18.5" r="1.5" /><circle cx="18.5" cy="18.5" r="1.5" /></>,
