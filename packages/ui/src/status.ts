@@ -44,12 +44,15 @@ export const TASK_STATUS_META: Record<TaskStatus, StatusDescriptor> = {
   cancelled: { labelKey: 'taskStatus.cancelled', tone: 'neutral', icon: 'circle-x' },
 };
 
-/** Lookup the descriptor for an order status. */
-export function orderStatusMeta(status: OrderStatus): StatusDescriptor {
-  return ORDER_STATUS_META[status];
+/** Fallback descriptor for unknown/undefined status values (defensive). */
+const UNKNOWN_STATUS: StatusDescriptor = { labelKey: 'common.unknown', tone: 'neutral', icon: 'circle-help' };
+
+/** Lookup the descriptor for an order status. Never throws on bad input. */
+export function orderStatusMeta(status: OrderStatus | string | null | undefined): StatusDescriptor {
+  return (status && ORDER_STATUS_META[status as OrderStatus]) || UNKNOWN_STATUS;
 }
 
-/** Lookup the descriptor for a fulfillment task status. */
-export function taskStatusMeta(status: TaskStatus): StatusDescriptor {
-  return TASK_STATUS_META[status];
+/** Lookup the descriptor for a fulfillment task status. Never throws on bad input. */
+export function taskStatusMeta(status: TaskStatus | string | null | undefined): StatusDescriptor {
+  return (status && TASK_STATUS_META[status as TaskStatus]) || UNKNOWN_STATUS;
 }
