@@ -1,0 +1,81 @@
+# Elite v1 — E2E (Playwright) CI workflow
+#
+# HOW TO ACTIVATE:
+#   This file lives in `e2e/` so it does NOT auto-run. To enable it, move it to
+#   the repo's workflows directory and commit:
+#
+#       mkdir -p .github/workflows
+#       git mv e2e/ci-e2e.yml .github/workflows/e2e.yml
+#
+#   GitHub Actions only discovers workflows under `.github/workflows/`.
+#
+# WHAT IT DOES:
+#   Installs deps + Playwright browsers and runs the suite against BASE_URL.
+#   By default it targets the live production deploy; override BASE_URL (e.g.
+#   to a per-PR Vercel preview) via repo/environment variables or by editing
+#   the `env` below. No secrets are required — the suite never authenticates.
+
+name: e2e
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Target base URL to test against"
+        required: false
+        default: "https://remotion-project-6dvr.vercel.app"
+  # Optional: nightly run against production.
+  schedule:
+    - cron: "0 3 * * *"
+
+# Avoid piling up redundant runs on the same ref.
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    name: Playwright (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [desktop-chromium, mobile-safari]
+    defaults:
+      run:
+        working-directory: e2e
+    env:
+      # Precedence: manual dispatch input > repo variable > live default.
+      BASE_URL: ${{ github.event.inputs.base_url || vars.E2E_BASE_URL || 'https://remotion-project-6dvr.vercel.app' }}
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests
+        run: npx playwright test --project=${{ matrix.project }}
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: e2e/playwright-report
+          retention-days: 14

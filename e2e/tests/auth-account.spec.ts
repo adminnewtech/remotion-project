@@ -38,10 +38,8 @@ test.describe('Auth & account', () => {
   });
 
   test('account support page renders', async ({ page }) => {
-    const res = await goto(page, 'en', '/account/support').then(
-      () => page,
-    );
-    await expect(res.getByRole('heading').first()).toBeVisible();
+    await goto(page, 'en', '/account/support');
+    await expect(page.getByRole('heading').first()).toBeVisible();
   });
 
   test('admin route is gated (redirects to login or shows access denied)', async ({
