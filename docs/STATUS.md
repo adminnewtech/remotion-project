@@ -10,7 +10,7 @@ This page tracks what is **actually live** right now (versus the plan in
 | Area | Status |
 |---|---|
 | Web storefront + admin | 🟢 Live on Vercel |
-| Admin dashboard (OSALPHA Gold) | 🟢 Overview, catalog, orders, analytics, dispatch, support, CEO, staff, finance, marketing — all live on first-party data |
+| Admin dashboard (OSALPHA Gold) | 🟢 Every nav item live: overview, orders (+status→notify), catalog (+Shopify sync), **cashier/POS**, **workshop**, dispatch (+**live driver map**), **customers**, support, marketing, finance, staff, analytics, CEO — no "coming soon" left |
 | Native-first (drop Zoho/Shopify) | 🟢 Finance + Marketing run on our own tables (no Zoho Books / Meta-only / Shopify reads); dispatch + staff fully native |
 | Quality gates (typecheck + lint + build) | 🟢 Green across all 8 packages in CI |
 | Supabase project | 🟢 Provisioned (schema + RLS + seed) |
@@ -106,6 +106,18 @@ SaaS. Progress:
   auto-assign (least-loaded driver/technician), no third-party logistics.
 - **Staff** (`/admin/staff`) — native role management over `profiles`; no
   external HR. Utilization is a real metric from active tasks.
+- **Cashier / POS** (`/admin/cashier`) — native in-store sales: ticket → cash/
+  KNET → creates a completed order + items + captured payment and decrements
+  inventory. Replaces any external POS.
+- **Customers** (`/admin/customers`) — CRM-lite from our own profiles + orders
+  (order count, lifetime spend, last order). No external CRM.
+- **Workshop** (`/admin/workshop`) — installation-job execution over
+  fulfillment_tasks + installation_jobs (checklist, photos, completion).
+- **Live ops map** (on `/admin/dispatch`) — Leaflet/OSM web map streaming
+  driver GPS from `driver_locations` over Supabase Realtime; the web
+  counterpart of the mobile MapTracker. No Google Maps key needed.
+- **Order status → customer notify** — admin status changes fire the `notify`
+  Edge Function (in-app, push, WhatsApp, email) automatically.
 
 Still external by necessity (no replacement intended yet): the **ad platforms
 themselves** (Meta/Google) consume our exported feeds; **payment gateway**

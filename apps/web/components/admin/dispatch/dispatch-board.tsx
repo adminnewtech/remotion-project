@@ -8,6 +8,7 @@ import { useT } from '@/lib/use-t';
 import { PageHeader } from '@/components/admin/ui';
 import type { DispatchData, DispatchTask } from '@/lib/admin-dispatch';
 import { reassignTask, autoAssignTasks } from '@/app/[locale]/admin/dispatch/actions';
+import { LiveOpsMap } from './live-map';
 
 const CARD = 'rounded-osa border border-osa-border bg-osa-surface p-3 shadow-osa';
 
@@ -97,6 +98,8 @@ export function DispatchBoard({ data }: { data: DispatchData }) {
           </button>
         }
       />
+
+      <LiveOpsMap driverNames={Object.fromEntries(data.staff.map((s) => [s.id, s.full_name]))} />
 
       <div className="grid gap-[14px] lg:grid-cols-3">
         {columns.map((col) => {
