@@ -94,9 +94,51 @@ export function FinanceView({ data }: { data: FinanceData }) {
         </div>
       </div>
 
+      {/* ── Double-entry ledger (migration 0025) ── */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-surface shadow-sm">
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <h2 className="text-lg font-bold">{ar ? 'قائمة الدخل (دفتر الأستاذ)' : 'P&L (ledger)'}</h2>
+            <span className={'text-sm font-bold ' + (data.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
+              {ar ? 'صافي' : 'Net'}: {data.netProfit.toFixed(3)} KWD
+            </span>
+          </div>
+          <Table>
+            <tbody>
+              {data.pnl.map((r) => (
+                <tr key={r.code}>
+                  <td className="font-mono text-xs">{r.code}</td>
+                  <td>{r.name}</td>
+                  <td className={'text-end font-semibold ' + (r.kind === 'revenue' ? 'text-emerald-600' : 'text-rose-600')}>
+                    {r.kind === 'expense' ? '−' : ''}{r.amount.toFixed(3)}
+                  </td>
+                </tr>
+              ))}
+              {data.pnl.length === 0 && <tr><td className="py-5 text-center text-sm text-muted" colSpan={3}>{ar ? 'لا قيود بعد — تُرحَّل تلقائياً مع كل دفعة/مصروف/استلام' : 'No entries yet — auto-posted on every payment/expense/receipt'}</td></tr>}
+            </tbody>
+          </Table>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface shadow-sm">
+          <h2 className="border-b border-border p-4 text-lg font-bold">{ar ? 'آخر القيود اليومية' : 'Recent journal entries'}</h2>
+          <Table>
+            <tbody>
+              {data.journal.map((j) => (
+                <tr key={j.entryNo}>
+                  <td className="font-mono text-xs">#{j.entryNo}</td>
+                  <td>{j.memo ?? j.source}<br /><small className="text-muted">{j.source} · {j.at.slice(0, 10)}</small></td>
+                  <td className="text-end font-semibold">{j.amount.toFixed(3)}</td>
+                </tr>
+              ))}
+              {data.journal.length === 0 && <tr><td className="py-5 text-center text-sm text-muted" colSpan={3}>—</td></tr>}
+            </tbody>
+          </Table>
+        </div>
+      </div>
+
       <p className="mt-3 text-xs text-muted">
         {ar
-          ? 'الأرقام محسوبة من طلباتنا ومصروفاتنا مباشرة (مصدر أوّلي — بدون Zoho).'
+          ? 'الأرقام محسوبة من دفتر قيود مزدوجة native يترحّل تلقائياً (بدون Zoho).'
           : 'Figures are computed directly from our own orders + expenses (first-party — no Zoho).'}
       </p>
     </>

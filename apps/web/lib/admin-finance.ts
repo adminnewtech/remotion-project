@@ -11,6 +11,7 @@ import 'server-only';
  */
 import type { OrderStatus } from '@elite/types';
 import { getServerClient } from '@/lib/supabase/server';
+import { netProfit, type PnlRow } from '@/lib/pure/accounting';
 import { invoicesZoho, expensesZoho } from '@/lib/admin-sample';
 
 export interface FinanceInvoice {
@@ -29,8 +30,28 @@ export interface FinanceExpense {
   date: string;
 }
 
+export interface PnlLine {
+  code: string;
+  name: string;
+  kind: 'revenue' | 'expense';
+  amount: number;
+}
+
+export interface JournalRow {
+  entryNo: number;
+  memo: string | null;
+  source: string;
+  at: string;
+  amount: number;
+}
+
 export interface FinanceData {
   live: boolean;
+  /** Double-entry ledger live? (migration 0025) */
+  ledgerLive: boolean;
+  pnl: PnlLine[];
+  netProfit: number;
+  journal: JournalRow[];
   revenue: number;
   expenses: number;
   net: number;
@@ -67,6 +88,31 @@ export async function fetchFinance(): Promise<FinanceData> {
           .order('incurred_on', { ascending: false })
           .limit(50),
       ]);
+
+      // Ledger (0025): P&L view + recent journal entries.
+      let ledgerLive = false;
+      let pnl: PnlLine[] = [];
+      let journal: JournalRow[] = [];
+      try {
+        const [{ data: pl }, { data: je }] = await Promise.all([
+          client.from('v_profit_loss').select('kind, code, name_ar, amount'),
+          client.from('journal_entries').select('entry_no, memo, source_kind, posted_at, journal_lines(debit)').order('posted_at', { ascending: false }).limit(25),
+        ]);
+        if (pl) {
+          ledgerLive = true;
+          pnl = (pl as { kind: 'revenue' | 'expense'; code: string; name_ar: string; amount: number }[])
+            .map((r) => ({ code: r.code, name: r.name_ar, kind: r.kind, amount: Number(r.amount) }))
+            .filter((r) => r.amount !== 0);
+          journal = ((je ?? []) as unknown as { entry_no: number; memo: string | null; source_kind: string; posted_at: string; journal_lines: { debit: number }[] }[])
+            .map((r) => ({
+              entryNo: r.entry_no,
+              memo: r.memo,
+              source: r.source_kind,
+              at: r.posted_at,
+              amount: (r.journal_lines ?? []).reduce((s2, l) => s2 + Number(l.debit || 0), 0),
+            }));
+        }
+      } catch { /* ledger absent → sample */ }
 
       if (orderRows && orderRows.length) {
         const orders = orderRows as OrderRow[];
@@ -107,6 +153,10 @@ export async function fetchFinance(): Promise<FinanceData> {
 
         return {
           live: true,
+          ledgerLive,
+          pnl,
+          netProfit: netProfit(pnl as PnlRow[]),
+          journal,
           revenue,
           expenses,
           net: round3(revenue - expenses),
@@ -137,8 +187,18 @@ export async function fetchFinance(): Promise<FinanceData> {
   }));
   const revenue = round3(invoices.reduce((s, i) => s + i.amount, 0));
   const expenses = round3(expenseList.reduce((s, e) => s + e.amount, 0));
+  const samplePnl: PnlLine[] = [
+    { code: '4000', name: 'إيراد المبيعات', kind: 'revenue', amount: 598.5 },
+    { code: '5100', name: 'مصاريف تشغيلية', kind: 'expense', amount: 1820.0 },
+  ];
   return {
     live: false,
+    ledgerLive: false,
+    pnl: samplePnl,
+    netProfit: netProfit(samplePnl as PnlRow[]),
+    journal: [
+      { entryNo: 10001, memo: 'تحصيل دفعة طلب', source: 'payment', at: new Date().toISOString(), amount: 264 },
+    ],
     revenue,
     expenses,
     net: round3(revenue - expenses),
