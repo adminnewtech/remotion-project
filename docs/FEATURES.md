@@ -42,8 +42,8 @@ Benchmarked against Keeta / Talabat / AliExpress, focused on Newtech's vertical:
 - ✅ Driver/technician utilization, delivery & installation SLA, support SLA.
 - ✅ Role & staff management (invite, assign zones), audit log.
 - ✅ Pricing, discounts/campaigns, free-delivery rules.
-- ✅ **Marketing**: push Newtech catalog to Meta product feed, create/monitor campaigns & audiences (Meta Ads).
-- ✅ **Finance**: invoice/payment/expense sync to Zoho Books.
+- ✅ **Marketing**: native campaigns store + catalog feed exported from our own products (Google/Meta consume the feed). Live at `/admin/marketing`.
+- ✅ **Finance**: first-party revenue/invoices from our orders + a native expenses ledger (no Zoho Books dependency). Live at `/admin/finance`.
 - 🔜 Forecasting, A/B pricing, cohort analytics.
 
 ## Platform-wide

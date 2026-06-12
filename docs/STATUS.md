@@ -10,7 +10,8 @@ This page tracks what is **actually live** right now (versus the plan in
 | Area | Status |
 |---|---|
 | Web storefront + admin | 🟢 Live on Vercel |
-| Admin dashboard (OSALPHA Gold) | 🟢 Overview, catalog, orders, analytics, dispatch, support, CEO, staff |
+| Admin dashboard (OSALPHA Gold) | 🟢 Overview, catalog, orders, analytics, dispatch, support, CEO, staff, finance, marketing — all live on first-party data |
+| Native-first (drop Zoho/Shopify) | 🟢 Finance + Marketing run on our own tables (no Zoho Books / Meta-only / Shopify reads); dispatch + staff fully native |
 | Quality gates (typecheck + lint + build) | 🟢 Green across all 8 packages in CI |
 | Supabase project | 🟢 Provisioned (schema + RLS + seed) |
 | Catalog | 🟢 Seeded from `newtechq8.com` (24 products) |
@@ -84,6 +85,26 @@ Two Vercel projects are connected to this repo:
 |---|---|---|---|
 | `remotion-project-6dvr` | `apps/web` | 🟢 The real deploy | This is the live app. |
 | `remotion-project` | _(repo root)_ | 🔴 Errors until reconfigured | Legacy/duplicate. Its Root Directory must be set to `apps/web` — a per-project setting, not a repo file. Run the **Configure Vercel projects** workflow (`.github/workflows/configure-vercel.yml`, manual / `workflow_dispatch`, needs the `VERCEL_TOKEN` secret), or delete this project in the Vercel dashboard. A repo-root `vercel.json` does **not** work here: Vercel applies it to every connected project and breaks the apps/web-rooted one. |
+
+## Native-first strategy (replacing Zoho One + Shopify)
+
+The goal is to run the business entirely on this platform and retire external
+SaaS. Progress:
+
+- **Finance** (`/admin/finance`) — computed from our own `orders` + `payments`
+  and a native `expenses` table (migration 0016). No Zoho Books dependency.
+- **Marketing** (`/admin/marketing`) — campaigns stored first-party in
+  `marketing_campaigns`; the catalog feed (`/feeds/*`) is exported from our own
+  `products`, not Shopify.
+- **Dispatch** (`/admin/dispatch`) — live `fulfillment_tasks` with native
+  auto-assign (least-loaded driver/technician), no third-party logistics.
+- **Staff** (`/admin/staff`) — native role management over `profiles`; no
+  external HR. Utilization is a real metric from active tasks.
+
+Still external by necessity (no replacement intended yet): the **ad platforms
+themselves** (Meta/Google) consume our exported feeds; **payment gateway**
+(KNET/MyFatoorah). The legacy Zoho Books/Desk/Gmail/Meta adapter stubs in
+`packages/core/src/integrations` are now optional, not on the critical path.
 
 ## Known limitations / sandbox notes
 
