@@ -42,6 +42,8 @@ const ICONS: Record<string, string> = {
   staff: '<circle cx="12" cy="7" r="3.2"/><path stroke-linecap="round" d="M5 21c0-3.5 3.1-6 7-6s7 2.5 7 6"/>',
   reports: '<path stroke-linecap="round" d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
   agents: '<circle cx="12" cy="8" r="3"/><path stroke-linecap="round" d="M6 20v-1a6 6 0 0112 0v1M9 12l2 2 4-4"/><path stroke-linecap="round" d="M19 9l1.5-1.5M5 9L3.5 7.5M12 4V2"/>',
+  warranty: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>',
+  wishlist: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 20s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.5-7 10-7 10z"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M19.4 13a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-2.92 1.06V21a2 2 0 11-4 0v-.07A1.65 1.65 0 006.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 003 13.4a2 2 0 010-4h.07A1.65 1.65 0 004.6 6.6l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 0011 3.07V3a2 2 0 014 0v.07a1.65 1.65 0 002.92 1.06l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0021 10.6a2 2 0 010 4z"/>',
 };
 
@@ -54,6 +56,7 @@ const GROUPS: NavGroup[] = [
       { key: 'orders', href: '/orders', labelAr: 'الطلبات', labelEn: 'Orders', icon: 'orders', roles: ['admin', 'employee'], badge: '23', badgeTone: 'brand' },
       { key: 'catalog', href: '/catalog', labelAr: 'المنتجات والمخزون', labelEn: 'Products & inventory', icon: 'catalog', roles: ['admin', 'employee'] },
       { key: 'purchasing', href: '/purchasing', labelAr: 'المشتريات', labelEn: 'Purchasing', icon: 'accounting', roles: ['admin', 'employee'] },
+      { key: 'landed-costs', href: '/purchasing/costs', labelAr: 'تكاليف الشحن', labelEn: 'Landed costs', icon: 'accounting', roles: ['admin'] },
       { key: 'cashier', href: '/cashier', labelAr: 'الكاشير', labelEn: 'Cashier', icon: 'cashier', roles: ['admin', 'employee'], badge: 'وردية', badgeTone: 'warn' },
     ],
   },
@@ -64,6 +67,7 @@ const GROUPS: NavGroup[] = [
       { key: 'workshop', href: '/workshop', labelAr: 'الورشة', labelEn: 'Workshop', icon: 'workshop', roles: ['admin', 'employee'] },
       { key: 'appointments', href: '/appointments', labelAr: 'المواعيد', labelEn: 'Appointments', icon: 'installs', roles: ['admin', 'employee'] },
       { key: 'installs', href: '/dispatch', labelAr: 'التركيبات', labelEn: 'Installations', icon: 'installs', roles: ['admin', 'employee'], badge: '6', badgeTone: 'brand' },
+      { key: 'warranties', href: '/warranties', labelAr: 'الضمانات', labelEn: 'Warranties', icon: 'warranty', roles: ['admin', 'employee'] },
     ],
   },
   {
@@ -76,6 +80,7 @@ const GROUPS: NavGroup[] = [
       { key: 'chats', href: '/support', labelAr: 'المحادثات', labelEn: 'Conversations', icon: 'chats', roles: ['admin', 'employee'], badge: '12', badgeTone: 'brand' },
       { key: 'automation', href: '/automation', labelAr: 'الأتمتة', labelEn: 'Automation', icon: 'campaigns', roles: ['admin'] },
       { key: 'campaigns', href: '/marketing', labelAr: 'الحملات', labelEn: 'Campaigns', icon: 'campaigns', roles: ['admin'] },
+      { key: 'wishlists', href: '/marketing/wishlists', labelAr: 'قوائم الرغبات', labelEn: 'Wishlists', icon: 'wishlist', roles: ['admin'] },
     ],
   },
   {
