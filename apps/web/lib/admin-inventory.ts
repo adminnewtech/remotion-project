@@ -39,11 +39,22 @@ export interface MoveRow {
   note: string | null;
 }
 
+export interface SerialRow {
+  serial: string;
+  product: string;
+  sku: string | null;
+  status: string;
+  batch: string | null;
+  location: string;
+  at: string;
+}
+
 export interface InventorySuite {
   live: boolean;
   locations: LocationRow[];
   stock: StockRow[];
   moves: MoveRow[];
+  serials: SerialRow[];
   totalUnits: number;
   totalValue: number;
   lowCount: number;
@@ -107,11 +118,30 @@ export async function fetchInventorySuite(): Promise<InventorySuite> {
           note: m.note,
         }));
 
+        const { data: serRows } = await client
+          .from('product_serials')
+          .select('serial, variant_id, status, batch_no, location_id, created_at')
+          .order('created_at', { ascending: false })
+          .limit(100);
+        const serials: SerialRow[] = ((serRows ?? []) as {
+          serial: string; variant_id: string; status: string;
+          batch_no: string | null; location_id: string | null; created_at: string;
+        }[]).map((sr) => ({
+          serial: sr.serial,
+          product: varInfo.get(sr.variant_id)?.product ?? '—',
+          sku: varInfo.get(sr.variant_id)?.sku ?? null,
+          status: sr.status,
+          batch: sr.batch_no,
+          location: (sr.location_id && locName.get(sr.location_id)) || '—',
+          at: sr.created_at,
+        }));
+
         return {
           live: true,
           locations,
           stock,
           moves,
+          serials,
           totalUnits: stock.reduce((s, r) => s + r.total, 0),
           totalValue: stockValue(stock.map((r) => ({ onHand: r.total, cost: r.price }))),
           lowCount: stock.filter((r) => r.total > 0 && r.total <= LOW).length,
@@ -135,6 +165,10 @@ export async function fetchInventorySuite(): Promise<InventorySuite> {
     live: false,
     locations,
     stock,
+    serials: [
+      { serial: 'AZD-M660-00917', product: 'داش كام أزدوم M660', sku: 'CA-01001', status: 'in_stock', batch: 'B-2406', location: 'مخزن الشويخ', at: new Date().toISOString() },
+      { serial: 'AZD-M660-00911', product: 'داش كام أزدوم M660', sku: 'CA-01001', status: 'sold', batch: 'B-2405', location: 'معرض الري', at: new Date().toISOString() },
+    ],
     moves: [
       { id: 3, at: new Date().toISOString(), product: 'داش كام أزدوم M660', sku: 'CA-01001', location: 'معرض الري', qty: -1, kind: 'sale', ref: '#NT-100245', note: null },
       { id: 2, at: new Date().toISOString(), product: 'قفل ذكي S630 Max', sku: 'SH-01003', location: 'مخزن الشويخ', qty: 20, kind: 'purchase', ref: 'PO-1001', note: null },

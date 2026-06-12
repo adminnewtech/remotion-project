@@ -20,6 +20,13 @@ export interface TimelineEvent {
   status?: string;
 }
 
+export interface OwnedDevice {
+  serial: string;
+  product: string;
+  status: string;
+  boughtAt: string | null;
+}
+
 export interface Customer360 {
   live: boolean;
   id: string;
@@ -33,6 +40,7 @@ export interface Customer360 {
   lastOrderAt: string | null;
   tier: 'champion' | 'loyal' | 'active' | 'at_risk' | 'new';
   openTickets: number;
+  devices: OwnedDevice[];
   timeline: TimelineEvent[];
 }
 
@@ -55,9 +63,12 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
         const orderRows = (orders ?? []) as OrderRow[];
         const orderIds = orderRows.map((o) => o.id);
 
-        const [{ data: payments }, { data: tickets }] = await Promise.all([
+        const [{ data: payments }, { data: tickets }, { data: serials }] = await Promise.all([
           orderIds.length ? client.from('payments').select('order_id, amount, method, status, created_at').in('order_id', orderIds) : Promise.resolve({ data: [] as PaymentRow[] }),
           client.from('tickets').select('id, subject, status, kind, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(50),
+          orderIds.length
+            ? client.from('product_serials').select('serial, status, order_id, variant_id, created_at, product_variants(products(name_ar))').in('order_id', orderIds)
+            : Promise.resolve({ data: [] as unknown[] }),
         ]);
         const ticketRows = (tickets ?? []) as TicketRow[];
 
@@ -81,6 +92,16 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
         }
         timeline.sort((a, b) => (a.at < b.at ? 1 : -1));
 
+        const devices: OwnedDevice[] = ((serials ?? []) as {
+          serial: string; status: string; order_id: string | null; created_at: string;
+          product_variants: { products: { name_ar: string } | null } | null;
+        }[]).map((d) => ({
+          serial: d.serial,
+          product: d.product_variants?.products?.name_ar ?? '—',
+          status: d.status,
+          boughtAt: d.order_id ? (orderRows.find((o) => o.id === d.order_id)?.placed_at ?? null) : null,
+        }));
+
         return {
           live: true,
           id: prof.id,
@@ -94,6 +115,7 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
           lastOrderAt,
           tier: tierOf(orderRows.length, spent, lastOrderAt),
           openTickets: ticketRows.filter((t) => t.status === 'open').length,
+          devices,
           timeline: timeline.slice(0, 60),
         };
       }
@@ -115,6 +137,9 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
     lastOrderAt: '2026-06-08T10:00:00Z',
     tier: 'champion',
     openTickets: 1,
+    devices: [
+      { serial: 'AZD-M660-00911', product: 'داش كام أزدوم M660', status: 'sold', boughtAt: '2026-06-08T10:00:00Z' },
+    ],
     timeline: [
       { kind: 'order', at: '2026-06-08T10:00:00Z', title: 'طلب NT-100245', detail: 'مكتمل', amount: 264, status: 'completed' },
       { kind: 'install', at: '2026-06-08T13:00:00Z', title: 'تركيب — NT-100245', detail: 'مهمة تركيب', amount: null },

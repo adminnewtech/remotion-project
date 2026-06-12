@@ -54,6 +54,21 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         <KpiCard label={ar ? 'تذاكر مفتوحة' : 'Open tickets'} value={String(c.openTickets)} />
       </div>
 
+
+      {c.devices.length > 0 && (
+        <div className={`${CARD} mb-[14px] p-5`}>
+          <h2 className="mb-3 text-[14.5px] font-bold text-osa-ink">{ar ? 'أجهزة العميل (بالسيريال)' : 'Owned devices (by serial)'}</h2>
+          <div className="flex flex-wrap gap-2">
+            {c.devices.map((d) => (
+              <div key={d.serial} className="rounded-osa border border-osa-border bg-osa-surface-2 px-3.5 py-2">
+                <p className="text-[12.5px] font-semibold text-osa-ink">{d.product}</p>
+                <p className="num text-[11px] text-osa-faint">{d.serial}{d.boughtAt ? ` · ${d.boughtAt.slice(0, 10)}` : ''}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className={`${CARD} p-5`}>
         <h2 className="mb-4 text-[14.5px] font-bold text-osa-ink">{ar ? 'السجل الكامل' : 'Unified timeline'}</h2>
         <ol className="relative space-y-4 ps-5">

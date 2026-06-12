@@ -15,7 +15,14 @@ const KIND_AR: Record<string, string> = {
   transfer_in: 'تحويل وارد', transfer_out: 'تحويل صادر', return: 'مرتجع',
 };
 
-type Tab = 'stock' | 'moves' | 'locations';
+const SERIAL_AR: Record<string, { label: string; cls: string }> = {
+  in_stock: { label: 'بالمخزون', cls: 'bg-osa-green-dim text-osa-green' },
+  sold: { label: 'مباع', cls: 'bg-osa-blue-dim text-osa-blue' },
+  returned: { label: 'مرتجع', cls: 'bg-osa-amber-dim text-osa-amber' },
+  defective: { label: 'تالف', cls: 'bg-osa-rose-dim text-osa-rose' },
+};
+
+type Tab = 'stock' | 'moves' | 'serials' | 'locations';
 type Dialog = { kind: 'adjust' | 'transfer'; row: StockRow } | null;
 
 export function InventorySuiteView({ data }: { data: InventorySuite }) {
@@ -72,6 +79,7 @@ export function InventorySuiteView({ data }: { data: InventorySuite }) {
   const TABS: { key: Tab; ar: string; en: string }[] = [
     { key: 'stock', ar: 'المخزون حسب الموقع', en: 'Stock by location' },
     { key: 'moves', ar: 'دفتر الحركات', en: 'Movements ledger' },
+    { key: 'serials', ar: 'السيريالات', en: 'Serials' },
     { key: 'locations', ar: 'المواقع', en: 'Locations' },
   ];
 
@@ -163,6 +171,32 @@ export function InventorySuiteView({ data }: { data: InventorySuite }) {
                 </tr>
               ))}
               {data.moves.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-[12.5px] text-osa-faint">—</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+
+      {tab === 'serials' && (
+        <div className={`${CARD} mt-[14px] overflow-hidden`}>
+          <h2 className="border-b border-osa-border p-3 text-[14.5px] font-bold text-osa-ink">{ar ? 'سجل السيريالات (الضمان)' : 'Serial registry (warranty)'}</h2>
+          <table className="w-full border-collapse text-[13px]">
+            <thead><tr>{[ar ? 'السيريال' : 'Serial', ar ? 'المنتج' : 'Product', ar ? 'الحالة' : 'Status', ar ? 'الدفعة' : 'Batch', ar ? 'الموقع' : 'Location', ar ? 'التاريخ' : 'Date'].map((h, i) => (<th key={i} className="border-b border-osa-border px-3 pb-2 pt-3 text-start text-[11.5px] font-medium text-osa-faint">{h}</th>))}</tr></thead>
+            <tbody>
+              {data.serials.map((sr) => {
+                const st = SERIAL_AR[sr.status] ?? { label: sr.status, cls: 'bg-osa-surface-2 text-osa-muted' };
+                return (
+                  <tr key={sr.serial} className="hover:bg-osa-surface-2">
+                    <td className="border-b border-osa-border px-3 py-2"><span className="num text-[12.5px] font-semibold text-osa-ink">{sr.serial}</span></td>
+                    <td className="border-b border-osa-border px-3 py-2"><span className="text-[12.5px] text-osa-ink">{sr.product}</span> <span className="num text-[11px] text-osa-faint">{sr.sku ?? ''}</span></td>
+                    <td className="border-b border-osa-border px-3 py-2"><span className={`rounded-full px-2.5 py-[3px] text-[11px] font-semibold ${st.cls}`}>{st.label}</span></td>
+                    <td className="border-b border-osa-border px-3 py-2"><span className="num text-[11.5px] text-osa-muted">{sr.batch ?? '—'}</span></td>
+                    <td className="border-b border-osa-border px-3 py-2 text-osa-muted">{sr.location}</td>
+                    <td className="border-b border-osa-border px-3 py-2"><span className="num text-[11.5px] text-osa-faint">{sr.at.slice(0, 10)}</span></td>
+                  </tr>
+                );
+              })}
+              {data.serials.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-[12.5px] text-osa-faint">{ar ? 'تُسجَّل السيريالات عند استلام أوامر الشراء' : 'Serials are captured on PO receiving'}</td></tr>}
             </tbody>
           </table>
         </div>

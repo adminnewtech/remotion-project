@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import type { PaymentMethod } from '@elite/types';
 import { Button, Input, Select } from '@elite/ui/web';
-import { orders as coreOrders } from '@elite/core';
+import { orders as coreOrders, cart as coreCart } from '@elite/core';
 import { useCart } from '@/components/cart-store';
 import { useSupabase } from '@/components/providers';
 import { useT } from '@/lib/use-t';
@@ -52,15 +52,58 @@ export default function CheckoutPage() {
     setError(null);
     try {
       if (supabase) {
-        // Live path: invoke the checkout Edge Function via core. cart_id /
-        // address_id would come from the server-synced cart + saved address.
-        await coreOrders.checkout(supabase, {
-          cart_id: 'cart-id',
-          address_id: 'address-id',
-          payment_method: payment,
-        });
+        const { data: auth } = await supabase.auth.getUser();
+        if (auth?.user) {
+          // REAL flow: sync the local cart into the server cart, persist the
+          // address, then invoke the checkout Edge Function (DB-priced).
+          const serverCart = await coreCart.getOrCreateCart(supabase, auth.user.id);
+          // Reset any stale lines so the server cart mirrors what's on screen.
+          const existing = await coreCart.listCartItems(supabase, serverCart.id);
+          for (const it of existing) await coreCart.removeItem(supabase, it.id);
+          for (const l of cart.lines) {
+            await coreCart.addItem(supabase, serverCart.id, l.variantId, l.qty, l.withInstallation);
+          }
+
+          const { data: addr, error: addrErr } = await supabase
+            .from('addresses')
+            .insert({
+              user_id: auth.user.id,
+              label: address.label || null,
+              governorate: address.governorate || null,
+              area: address.area || null,
+              block: address.block || null,
+              street: address.street || null,
+              building: address.building || null,
+              floor: address.floor || null,
+              apartment: address.apartment || null,
+            })
+            .select('id')
+            .single();
+          if (addrErr || !addr) throw addrErr ?? new Error('address');
+
+          const slot = SLOTS.find((s) => s.id === deliverySlot);
+          const inst = SLOTS.find((s) => s.id === installSlot);
+          const res = await coreOrders.checkout(supabase, {
+            cart_id: serverCart.id,
+            address_id: (addr as { id: string }).id,
+            payment_method: payment,
+            ...(slot ? { delivery_slot: { start: slot.start, end: slot.end } } : {}),
+            ...(hasInstall && inst ? { installation_slot: { start: inst.start, end: inst.end } } : {}),
+          });
+
+          cart.clear();
+          if (res.payment_url && payment !== 'cod') {
+            window.location.href = res.payment_url; // hosted KNET page
+          } else {
+            router.push(`${base}/checkout/confirmation?order=${encodeURIComponent(res.order_number)}`);
+          }
+          return;
+        }
+        // Signed-out on a live backend → authenticate first, then return here.
+        router.push(`${base}/auth/login?next=${encodeURIComponent(`${base}/checkout`)}`);
+        return;
       }
-      // Dev / demo: simulate a placed order.
+      // Dev / demo (no backend): simulate a placed order.
       const orderNumber = `NT-${Math.floor(100000 + Math.random() * 899999)}`;
       cart.clear();
       router.push(`${base}/checkout/confirmation?order=${orderNumber}`);
