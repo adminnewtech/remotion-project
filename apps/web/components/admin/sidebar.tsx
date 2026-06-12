@@ -3,99 +3,202 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { UserRole } from '@elite/types';
-import { Avatar } from '@elite/ui/web';
 import { useT } from '@/lib/use-t';
-import { useAuth } from '@/components/auth-context';
-import { hasRole } from '@/components/auth-context';
-import { LanguageSwitch } from '@/components/language-switch';
+import { useAuth, hasRole } from '@/components/auth-context';
 
 interface NavItem {
   key: string;
-  href: string;
-  labelKey: string;
-  icon: string; // simple SVG path
+  /** Route under the admin base, or `null` for a not-yet-built page → "قريباً". */
+  href: string | null;
+  labelAr: string;
+  labelEn: string;
+  icon: string; // inner SVG markup
   roles: UserRole[];
+  badge?: string;
+  badgeTone?: 'brand' | 'warn';
 }
 
-// Path snippets are simple stroke icons (24x24).
+interface NavGroup {
+  labelAr: string;
+  labelEn: string;
+  items: NavItem[];
+}
+
+// Stroke icons (24×24) matching the reference mockup.
 const ICONS: Record<string, string> = {
-  dashboard: 'M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z',
-  orders: 'M6 2h9l5 5v15H6zM15 2v5h5',
-  catalog: 'M4 4h16v6H4zM4 14h16v6H4z',
-  dispatch: 'M3 13l2-5h12l2 5v5h-2a2 2 0 1 1-4 0H9a2 2 0 1 1-4 0H3z',
-  support: 'M21 11.5a8.38 8.38 0 0 1-9 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.2A8.5 8.5 0 1 1 21 11.5z',
-  staff: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM23 21v-2a4 4 0 0 0-3-3.87',
-  marketing: 'M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.2-3',
-  finance: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
-  ceo: 'M3 3v18h18M7 14l3-4 3 3 5-7',
+  overview: '<path stroke-linecap="round" d="M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>',
+  orders: '<path stroke-linecap="round" d="M3 3h2l2 13h11l2-9H7"/><circle cx="9" cy="20" r="1.4"/><circle cx="16" cy="20" r="1.4"/>',
+  catalog: '<path stroke-linecap="round" d="M21 8l-9-5-9 5v8l9 5 9-5V8zM3.5 8.5L12 13l8.5-4.5M12 13v8"/>',
+  cashier: '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M3 17l2 3h14l2-3"/>',
+  workshop: '<path stroke-linecap="round" d="M5 17h14M6 17l1.5-9h9L18 17M9 8V6a3 3 0 016 0v2"/>',
+  installs: '<path stroke-linecap="round" d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  customers: '<circle cx="9" cy="8" r="3.2"/><path stroke-linecap="round" d="M3 20c0-3 2.7-5 6-5s6 2 6 5M16 4.5a3.2 3.2 0 010 7M21 20c0-2.5-1.8-4.2-4.2-4.8"/>',
+  chats: '<path stroke-linecap="round" d="M21 12a8 8 0 01-11.6 7.2L4 21l1.8-5.4A8 8 0 1121 12z"/>',
+  campaigns: '<path stroke-linecap="round" d="M11 5L4 9v6l7 4V5zM15 8.5a4 4 0 010 7M18 6a8 8 0 010 12"/>',
+  accounting: '<path stroke-linecap="round" d="M4 19V5a1 1 0 011-1h9l5 5v10a1 1 0 01-1 1H5a1 1 0 01-1-1zM14 4v5h5M8 13h8M8 16.5h5"/>',
+  staff: '<circle cx="12" cy="7" r="3.2"/><path stroke-linecap="round" d="M5 21c0-3.5 3.1-6 7-6s7 2.5 7 6"/>',
+  reports: '<path stroke-linecap="round" d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
 };
 
-const NAV: NavItem[] = [
-  { key: 'dashboard', href: '', labelKey: 'admin.dashboard', icon: 'dashboard', roles: ['admin', 'employee'] },
-  { key: 'ceo', href: '/ceo', labelKey: 'admin.ceo', icon: 'ceo', roles: ['admin'] },
-  { key: 'orders', href: '/orders', labelKey: 'admin.orders', icon: 'orders', roles: ['admin', 'employee'] },
-  { key: 'catalog', href: '/catalog', labelKey: 'nav.catalog', icon: 'catalog', roles: ['admin', 'employee'] },
-  { key: 'dispatch', href: '/dispatch', labelKey: 'admin.dispatch', icon: 'dispatch', roles: ['admin', 'employee'] },
-  { key: 'support', href: '/support', labelKey: 'nav.support', icon: 'support', roles: ['admin', 'employee'] },
-  { key: 'staff', href: '/staff', labelKey: 'admin.staffManagement', icon: 'staff', roles: ['admin'] },
-  { key: 'marketing', href: '/marketing', labelKey: 'nav.marketing', icon: 'marketing', roles: ['admin'] },
-  { key: 'finance', href: '/finance', labelKey: 'nav.finance', icon: 'finance', roles: ['admin'] },
+const GROUPS: NavGroup[] = [
+  {
+    labelAr: 'الرئيسية',
+    labelEn: 'Main',
+    items: [
+      { key: 'overview', href: '', labelAr: 'نظرة عامة', labelEn: 'Overview', icon: 'overview', roles: ['admin', 'employee'] },
+      { key: 'orders', href: '/orders', labelAr: 'الطلبات', labelEn: 'Orders', icon: 'orders', roles: ['admin', 'employee'], badge: '23', badgeTone: 'brand' },
+      { key: 'catalog', href: '/catalog', labelAr: 'المنتجات والمخزون', labelEn: 'Products & inventory', icon: 'catalog', roles: ['admin', 'employee'] },
+      { key: 'cashier', href: null, labelAr: 'الكاشير', labelEn: 'Cashier', icon: 'cashier', roles: ['admin', 'employee'], badge: 'وردية', badgeTone: 'warn' },
+    ],
+  },
+  {
+    labelAr: 'الخدمات',
+    labelEn: 'Services',
+    items: [
+      { key: 'workshop', href: null, labelAr: 'الورشة', labelEn: 'Workshop', icon: 'workshop', roles: ['admin', 'employee'] },
+      { key: 'installs', href: '/dispatch', labelAr: 'التركيبات', labelEn: 'Installations', icon: 'installs', roles: ['admin', 'employee'], badge: '6', badgeTone: 'brand' },
+    ],
+  },
+  {
+    labelAr: 'العملاء والتسويق',
+    labelEn: 'Customers & marketing',
+    items: [
+      { key: 'customers', href: null, labelAr: 'العملاء', labelEn: 'Customers', icon: 'customers', roles: ['admin', 'employee'] },
+      { key: 'chats', href: '/support', labelAr: 'المحادثات', labelEn: 'Conversations', icon: 'chats', roles: ['admin', 'employee'], badge: '12', badgeTone: 'brand' },
+      { key: 'campaigns', href: '/marketing', labelAr: 'الحملات', labelEn: 'Campaigns', icon: 'campaigns', roles: ['admin'] },
+    ],
+  },
+  {
+    labelAr: 'الإدارة',
+    labelEn: 'Management',
+    items: [
+      { key: 'accounting', href: '/finance', labelAr: 'المحاسبة', labelEn: 'Accounting', icon: 'accounting', roles: ['admin'] },
+      { key: 'staff', href: '/staff', labelAr: 'الموظفون', labelEn: 'Staff', icon: 'staff', roles: ['admin'] },
+      { key: 'reports', href: '/ceo', labelAr: 'التقارير', labelEn: 'Reports', icon: 'reports', roles: ['admin'] },
+    ],
+  },
 ];
 
+function NavIcon({ markup }: { markup: string }) {
+  return (
+    <svg
+      width="17"
+      height="17"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="flex-shrink-0"
+      dangerouslySetInnerHTML={{ __html: markup }}
+    />
+  );
+}
+
 export function AdminSidebar() {
-  const { t, locale } = useT();
+  const { locale } = useT();
   const { profile } = useAuth();
   const pathname = usePathname() || '';
+  const ar = locale === 'ar';
   const adminBase = `/${locale}/admin`;
+  const soonHref = `${adminBase}/soon`;
+
+  const fullName = profile?.full_name ?? (ar ? 'أحمد الرشيدي' : 'Admin');
+  const roleLabel = profile?.role === 'admin' ? (ar ? 'المالك' : 'Owner') : ar ? 'موظف' : 'Staff';
+  const initial = fullName.trim().charAt(0) || (ar ? 'أ' : 'A');
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-e border-border bg-surface">
-      <div className="flex items-center gap-2 px-5 py-4">
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-lg font-black text-white">E</span>
+    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col gap-0.5 overflow-y-auto border-e border-osa-border bg-osa-surface px-[14px] py-5">
+      {/* Logo */}
+      <div className="flex items-center gap-[11px] px-[10px] pb-4 pt-0.5">
+        <div
+          className="grid h-9 w-9 place-items-center rounded-[11px] text-[16px] font-extrabold text-white"
+          style={{ background: 'linear-gradient(135deg,var(--osa-brand-grad-from),var(--osa-brand-grad-to))', fontFamily: 'var(--font-cairo)' }}
+        >
+          N
+        </div>
         <div>
-          <p className="text-sm font-extrabold leading-none">Elite Ops</p>
-          <p className="text-[11px] text-muted">Newtech</p>
+          <b className="block text-[16.5px] font-bold leading-tight text-osa-ink" style={{ fontFamily: 'var(--font-cairo)' }}>
+            OSALPHA
+          </b>
+          <span className="mt-[-3px] block text-[11px] font-normal text-osa-faint">
+            {ar ? 'نظام تشغيل نيوتك' : 'Newtech OS'}
+          </span>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-2">
-        {NAV.filter((item) => hasRole(profile, item.roles)).map((item) => {
-          const href = `${adminBase}${item.href}`;
-          const active = item.href === '' ? pathname === adminBase : pathname.startsWith(href);
+      {/* Store pill */}
+      <button
+        type="button"
+        className="mx-1 mb-3 flex items-center gap-[9px] rounded-osa-sm border border-osa-border bg-osa-surface-2 px-3 py-2 text-[12.5px] font-medium text-osa-ink"
+      >
+        <span className="h-2 w-2 rounded-full bg-osa-green" />
+        {ar ? 'نيوتك الكويت — الري' : 'Newtech Kuwait — Rai'}
+        <small className="ms-auto text-[11px] text-osa-faint">{ar ? 'نشط' : 'Active'}</small>
+      </button>
+
+      {/* Nav groups */}
+      <div className="flex-1">
+        {GROUPS.map((group) => {
+          const items = group.items.filter((it) => hasRole(profile, it.roles));
+          if (!items.length) return null;
           return (
-            <Link
-              key={item.key}
-              href={href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
-                active ? 'bg-primary text-white shadow-sm' : 'text-neutral-600 hover:bg-neutral-100'
-              }`}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-                <path d={ICONS[item.icon]} strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              {item.key === 'ceo'
-                ? locale === 'ar'
-                  ? 'الرئيس التنفيذي'
-                  : 'CEO'
-                : t(item.labelKey)}
-            </Link>
+            <div key={group.labelEn}>
+              <div className="px-3 pb-[5px] pt-3 text-[10.5px] font-semibold tracking-[0.05em] text-osa-faint">
+                {ar ? group.labelAr : group.labelEn}
+              </div>
+              <nav className="flex flex-col gap-0.5">
+                {items.map((it) => {
+                  const href = it.href === null ? soonHref : `${adminBase}${it.href}`;
+                  const active =
+                    it.href === null
+                      ? false
+                      : it.href === ''
+                        ? pathname === adminBase
+                        : pathname.startsWith(`${adminBase}${it.href}`);
+                  return (
+                    <Link
+                      key={it.key}
+                      href={href}
+                      aria-current={active ? 'page' : undefined}
+                      className={
+                        'flex items-center gap-[11px] rounded-osa-sm px-3 py-[8.5px] text-[13.5px] font-medium transition-colors ' +
+                        (active
+                          ? 'bg-osa-brand-dim font-semibold text-osa-brand'
+                          : 'text-osa-muted hover:bg-osa-surface-2 hover:text-osa-ink')
+                      }
+                    >
+                      <NavIcon markup={ICONS[it.icon] ?? ''} />
+                      <span>{ar ? it.labelAr : it.labelEn}</span>
+                      {it.badge && (
+                        <span
+                          className={
+                            'ms-auto rounded-full px-[7px] text-[11px] font-semibold ' +
+                            (it.badgeTone === 'warn'
+                              ? 'bg-osa-amber-dim text-osa-amber'
+                              : 'bg-osa-brand-dim text-osa-brand')
+                          }
+                        >
+                          {it.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
           );
         })}
-      </nav>
+      </div>
 
-      <div className="border-t border-border p-3">
-        <div className="mb-3 flex items-center gap-3 px-2">
-          <Avatar name={profile?.full_name ?? 'Admin'} src={profile?.avatar_url ?? undefined} size="sm" />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{profile?.full_name ?? 'Admin'}</p>
-            <p className="text-[11px] text-muted">{profile ? t(`roles.${profile.role}`) : ''}</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-between px-2">
-          <LanguageSwitch />
-          <Link href={`/${locale}`} className="text-xs text-muted hover:text-primary">
-            {t('nav.home')}
-          </Link>
+      {/* User card */}
+      <div className="mt-auto flex items-center gap-2.5 rounded-osa-sm border border-osa-border px-3 py-2.5">
+        <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-osa-brand-dim text-[13px] font-semibold text-osa-brand">
+          {initial}
+        </span>
+        <div className="min-w-0">
+          <div className="truncate text-[13px] font-medium text-osa-ink">{fullName}</div>
+          <small className="mt-[-4px] block text-[11px] text-osa-faint">{roleLabel}</small>
         </div>
       </div>
     </aside>

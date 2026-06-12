@@ -139,6 +139,35 @@ const preset = {
           'sidebar-text': 'var(--eos-sidebar-text)',
           'sidebar-muted': 'var(--eos-sidebar-muted)',
         },
+
+        // ── OSALPHA — "Gold" design system (live admin) ─────────────────
+        // Backed by CSS variables (web globals.css) so `[data-theme="dark"]`
+        // re-themes everything. Brand is GOLD; `aqua` is the workshop accent.
+        // Use as bg-osa-surface, text-osa-ink, border-osa-border, etc.
+        osa: {
+          canvas: 'var(--osa-canvas)',
+          surface: 'var(--osa-surface)',
+          'surface-2': 'var(--osa-surface-2)',
+          border: 'var(--osa-border)',
+          'border-strong': 'var(--osa-border-strong)',
+          ink: 'var(--osa-ink)',
+          muted: 'var(--osa-muted)',
+          faint: 'var(--osa-faint)',
+          brand: 'var(--osa-brand)',
+          'brand-strong': 'var(--osa-brand-strong)',
+          'brand-dim': 'var(--osa-brand-dim)',
+          'brand-border': 'var(--osa-brand-border)',
+          aqua: 'var(--osa-aqua)',
+          'aqua-dim': 'var(--osa-aqua-dim)',
+          amber: 'var(--osa-amber)',
+          'amber-dim': 'var(--osa-amber-dim)',
+          green: 'var(--osa-green)',
+          'green-dim': 'var(--osa-green-dim)',
+          blue: 'var(--osa-blue)',
+          'blue-dim': 'var(--osa-blue-dim)',
+          rose: 'var(--osa-rose)',
+          'rose-dim': 'var(--osa-rose-dim)',
+        },
       },
       fontFamily: {
         // Arabic-first: Cairo/Tajawal lead, then Latin fallbacks.
@@ -169,6 +198,9 @@ const preset = {
         xl: '1rem',
         '2xl': '1.5rem',
         full: '9999px',
+        // OSALPHA radii (gold admin): card 16px, control 10px.
+        osa: '16px',
+        'osa-sm': '10px',
       },
       spacing: {
         // Extends the default 4px scale with named app spacings.
@@ -190,6 +222,8 @@ const preset = {
         eos: '0 1px 2px rgba(16, 24, 40, 0.06)',
         'eos-hover': '0 4px 16px -4px rgba(16, 24, 40, 0.12)',
         'eos-popover': '0 8px 24px -8px rgba(16, 24, 40, 0.18)',
+        // OSALPHA gold-admin soft elevation (CSS-var driven so dark = none).
+        osa: 'var(--osa-shadow)',
       },
     },
   },

@@ -29,6 +29,72 @@
   --radius-card: 1rem;
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04),
     0 8px 24px -12px rgba(16, 24, 40, 0.18);
+
+  /* ─── OSALPHA — "Gold" design system (light) ────────────────────────
+   * The live admin shell + overview read these. Mirrors @elite/ui osalpha
+   * tokens. `[data-theme="dark"]` (set on <html>) re-themes everything.
+   * Font CSS vars (--font-cairo / --font-plex-arabic / --font-plex-mono)
+   * are injected by next/font in the locale layout. */
+  --osa-canvas: #f6f6fb;
+  --osa-surface: #ffffff;
+  --osa-surface-2: #f2f1f9;
+  --osa-border: rgba(28, 25, 60, 0.08);
+  --osa-border-strong: rgba(28, 25, 60, 0.16);
+  --osa-ink: #1c193c;
+  --osa-muted: #5d5a7d;
+  --osa-faint: #9c99b5;
+  --osa-brand: #b8860b;
+  --osa-brand-strong: #946e12;
+  --osa-brand-dim: rgba(184, 134, 11, 0.12);
+  --osa-brand-border: rgba(184, 134, 11, 0.3);
+  --osa-brand-grad-from: #946e12;
+  --osa-brand-grad-to: #e2c66a;
+  --osa-aqua: #0e9f8c;
+  --osa-aqua-dim: rgba(14, 159, 140, 0.1);
+  --osa-amber: #c2700a;
+  --osa-amber-dim: rgba(217, 119, 6, 0.12);
+  --osa-green: #15803d;
+  --osa-green-dim: rgba(21, 128, 61, 0.1);
+  --osa-blue: #2563eb;
+  --osa-blue-dim: rgba(37, 99, 235, 0.08);
+  --osa-rose: #e11d48;
+  --osa-rose-dim: rgba(225, 29, 72, 0.08);
+  --osa-shadow: 0 1px 3px rgba(28, 25, 60, 0.06), 0 4px 14px rgba(28, 25, 60, 0.05);
+  --osa-r: 16px;
+  --osa-r-sm: 10px;
+
+  --font-cairo: 'Cairo', sans-serif;
+  --font-plex-arabic: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+  --font-plex-mono: 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, monospace;
+}
+
+/* OSALPHA dark theme — opt-in via data-theme on <html>. */
+[data-theme='dark'] {
+  --osa-canvas: #12101f;
+  --osa-surface: #1a1730;
+  --osa-surface-2: #231f3d;
+  --osa-border: rgba(167, 160, 210, 0.1);
+  --osa-border-strong: rgba(167, 160, 210, 0.2);
+  --osa-ink: #edebfa;
+  --osa-muted: #a7a0c8;
+  --osa-faint: #6f6a92;
+  --osa-brand: #e3b341;
+  --osa-brand-strong: #c9a227;
+  --osa-brand-dim: rgba(227, 179, 65, 0.12);
+  --osa-brand-border: rgba(227, 179, 65, 0.3);
+  --osa-brand-grad-from: #c9a227;
+  --osa-brand-grad-to: #e2c66a;
+  --osa-aqua: #2dd4bf;
+  --osa-aqua-dim: rgba(45, 212, 191, 0.1);
+  --osa-amber: #fbbf24;
+  --osa-amber-dim: rgba(251, 191, 36, 0.1);
+  --osa-green: #34d399;
+  --osa-green-dim: rgba(52, 211, 153, 0.1);
+  --osa-blue: #60a5fa;
+  --osa-blue-dim: rgba(96, 165, 250, 0.1);
+  --osa-rose: #fb7185;
+  --osa-rose-dim: rgba(251, 113, 133, 0.1);
+  --osa-shadow: none;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -78,5 +144,50 @@ html[dir='rtl'] .flip-rtl {
   }
   .hairline {
     border-color: var(--border);
+  }
+}
+
+/*
+ * OSALPHA — mono LTR tabular numbers. Apply `.num` (or `.tabular`) to any
+ * price / count / metric so digits stay aligned and stay LTR inside RTL text.
+ */
+.num,
+.tabular {
+  font-family: var(--font-plex-mono);
+  direction: ltr;
+  unicode-bidi: embed;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * OSALPHA shell scope. The admin layout sets `.osa-root` so headings use Cairo
+ * and body uses IBM Plex Sans Arabic, matching the reference mockup — without
+ * disturbing the storefront's Cairo/Inter typography.
+ */
+.osa-root {
+  font-family: var(--font-plex-arabic);
+  background: var(--osa-canvas);
+  color: var(--osa-ink);
+}
+.osa-root h1,
+.osa-root h2,
+.osa-root h3 {
+  font-family: var(--font-cairo);
+}
+
+/* Gold primary action: dark ink + no glow in dark mode (matches mockup). */
+[data-theme='dark'] .osa-btn-primary {
+  color: #17122b;
+  box-shadow: none;
+}
+
+/* Honor reduced-motion within the OSALPHA admin shell. */
+@media (prefers-reduced-motion: reduce) {
+  .osa-root *,
+  .osa-statusbar * {
+    transition: none !important;
+    animation: none !important;
   }
 }

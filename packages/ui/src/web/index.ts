@@ -64,3 +64,20 @@ export { QuantityStepper, type QuantityStepperProps } from './QuantityStepper';
 export { ImageGallery, type ImageGalleryProps, type GalleryImage } from './ImageGallery';
 export { RatingInput, type RatingInputProps } from './RatingInput';
 export { KpiCard, type KpiCardProps, type KpiTrend, StatCard, type StatCardProps } from './KpiCard';
+
+// --- OSALPHA "Gold" admin primitives ---
+export {
+  StatusPill,
+  type StatusPillProps,
+  type StatusTone,
+  PayChip,
+  type PayChipProps,
+  ProgressBar,
+  type ProgressBarProps,
+  Sparkline,
+  type SparklineProps,
+  type SparkSeries,
+  Checklist,
+  type ChecklistProps,
+  type ChecklistItem,
+} from './osalpha';

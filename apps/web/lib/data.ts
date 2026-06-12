@@ -8,7 +8,7 @@ import 'server-only';
  * nothing, it falls back to the clearly-marked sample data so pages always
  * render. This is the single seam between the app and the backend contract.
  */
-import { catalog, orders, support } from '@elite/core';
+import { analytics, catalog, orders, support } from '@elite/core';
 import type {
   Category,
   Order,
@@ -380,6 +380,151 @@ export async function fetchAdminDashboard(): Promise<AdminDashboardData> {
     }
   }
   return { live: false, kpis: { today: { revenue: 0, orders: 0, aov: 0, conversion: 0 }, week: { revenue: 0, orders: 0, aov: 0, conversion: 0 }, month: { revenue: 0, orders: 0, aov: 0, conversion: 0 } }, liveOrders: [] };
+}
+
+// ── OSALPHA overview (gold dashboard) ───────────────────────
+//
+// The overview reads through the @elite/core analytics getters
+// (getDashboard → getRevenueByDay/getTopProducts/getOrdersByStatus/getLowStock)
+// plus recent orders, and maps them into the view shape. Each section falls
+// back to the documented sample when the live read is empty/unavailable, so the
+// dashboard always renders. Money stays KWD (3 decimals).
+
+import {
+  overviewKpis as sampleKpis,
+  overviewChannelSeries as sampleSeries,
+  overviewTopProducts as sampleTop,
+  overviewOrders as sampleOverviewOrders,
+  overviewBays,
+  overviewTasks,
+  type OverviewKpis,
+  type ChannelSeries,
+  type OverviewProduct,
+  type OverviewOrder,
+  type WorkshopBay,
+  type OverviewTask,
+} from '@/lib/overview-sample';
+
+export interface OverviewData {
+  /** Whether any section came from the live backend. */
+  live: boolean;
+  kpis: OverviewKpis;
+  series: ChannelSeries;
+  topProducts: OverviewProduct[];
+  orders: OverviewOrder[];
+  bays: WorkshopBay[];
+  tasks: OverviewTask[];
+}
+
+const PRODUCT_EMOJI = ['📦', '🔒', '🛡️', '📽️', '📷', '🎧', '🔌', '💡'];
+
+/** Map a live order status → overview status pill tone. */
+function overviewStatus(status: Order['status']): OverviewOrder['status'] {
+  switch (status) {
+    case 'draft':
+    case 'pending_payment':
+    case 'paid':
+      return 'new';
+    case 'processing':
+    case 'installing':
+    case 'out_for_delivery':
+      return 'prep';
+    case 'delivered':
+    case 'completed':
+      return 'done';
+    case 'cancelled':
+    case 'refunded':
+      return 'late';
+    default:
+      return 'new';
+  }
+}
+
+/**
+ * Live OSALPHA overview snapshot. Pulls the analytics dashboard + recent orders
+ * in parallel; sections with no live data fall back to the gold sample set.
+ */
+export async function fetchOverview(): Promise<OverviewData> {
+  const client = await getServerClient();
+  if (client) {
+    try {
+      const [dash, recent] = await Promise.all([
+        analytics.getDashboard(client, { topProductsLimit: 4, lowStockThreshold: 5 }),
+        orders.listOrders(client),
+      ]);
+
+      const days = dash.revenueByDay.slice(-12);
+      const hasSeries = days.length >= 2;
+      const series: ChannelSeries = hasSeries
+        ? {
+            store: days.map((d) => Math.round((d.subtotal ?? d.revenue) * 0.5)),
+            cashier: days.map((d) => Math.round((d.subtotal ?? d.revenue) * 0.32)),
+            whatsapp: days.map((d) => Math.round((d.subtotal ?? d.revenue) * 0.18)),
+          }
+        : sampleSeries;
+
+      const top: OverviewProduct[] = dash.topProducts.length
+        ? (() => {
+            const maxRev = Math.max(...dash.topProducts.map((p) => p.revenue), 1);
+            return dash.topProducts.map((p, i) => ({
+              emoji: PRODUCT_EMOJI[i % PRODUCT_EMOJI.length] ?? '📦',
+              name: p.name_ar || p.name_en || p.brand || '—',
+              meta: `${p.units_sold} قطعة`,
+              revenue: p.revenue,
+              share: Math.max(8, Math.round((p.revenue / maxRev) * 100)),
+            }));
+          })()
+        : sampleTop;
+
+      const liveOrders: OverviewOrder[] = recent.length
+        ? recent.slice(0, 5).map((o) => ({
+            number: `#${o.order_number}`,
+            customer: o.user_id.slice(0, 8),
+            channel: 'المتجر',
+            pay: 'KNET',
+            total: o.total,
+            status: overviewStatus(o.status),
+          }))
+        : sampleOverviewOrders;
+
+      // KPIs from today's revenue row + status roll-up.
+      const today = days[days.length - 1];
+      const receivable = dash.ordersByStatus
+        .filter((s) => s.status === 'pending_payment' || s.status === 'paid')
+        .reduce((n, s) => n + s.total_value, 0);
+      const kpis: OverviewKpis = today
+        ? {
+            ...sampleKpis,
+            salesToday: today.revenue,
+            ordersToday: today.orders,
+            receivables: receivable || sampleKpis.receivables,
+          }
+        : sampleKpis;
+
+      const live = hasSeries || dash.topProducts.length > 0 || recent.length > 0;
+      return {
+        live,
+        kpis,
+        series,
+        topProducts: top,
+        orders: liveOrders,
+        bays: overviewBays,
+        tasks: overviewTasks,
+      };
+    } catch {
+      /* fall through to sample */
+    }
+  }
+
+  return {
+    live: false,
+    kpis: sampleKpis,
+    series: sampleSeries,
+    topProducts: sampleTop,
+    orders: sampleOverviewOrders,
+    bays: overviewBays,
+    tasks: overviewTasks,
+  };
 }
 
 export async function fetchTickets(): Promise<Ticket[]> {

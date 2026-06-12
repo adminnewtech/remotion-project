@@ -1,8 +1,8 @@
-import { fetchAdminDashboard } from '@/lib/data';
-import { DashboardView } from '@/components/admin/dashboard-view';
+import { fetchOverview } from '@/lib/data';
+import { Overview } from '@/components/admin/overview';
 
-/** Admin dashboard — live KPIs + recent orders, computed server-side. */
-export default async function AdminDashboard() {
-  const data = await fetchAdminDashboard();
-  return <DashboardView data={data} />;
+/** OSALPHA admin overview — gold dashboard wired to live @elite/core analytics. */
+export default async function AdminOverviewPage() {
+  const data = await fetchOverview();
+  return <Overview data={data} />;
 }

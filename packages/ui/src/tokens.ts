@@ -184,6 +184,89 @@ export const eosDark = {
 
 export type EosTokens = typeof eos;
 
+/**
+ * OSALPHA — "Gold" semantic palette (the live admin design system).
+ *
+ * Source of truth for the OSALPHA admin shell + overview. These map 1:1 to the
+ * `--osa-*` CSS variables (web `globals.css`) and the Tailwind `colors.osa.*`
+ * tokens (`@elite/config/tailwind-preset`). The brand is GOLD; the teal `aqua`
+ * is the workshop accent; status colors (blue/green/amber/rose) follow the
+ * reference mockup. A `[data-theme="dark"]` block re-themes everything.
+ *
+ * Light values below; the dark values live in `osalphaDark`.
+ */
+export const osalpha = {
+  // Surfaces
+  canvas: '#F6F6FB',
+  surface: '#FFFFFF',
+  surface2: '#F2F1F9',
+  border: 'rgba(28,25,60,.08)',
+  borderStrong: 'rgba(28,25,60,.16)',
+  // Text
+  ink: '#1C193C',
+  muted: '#5D5A7D',
+  faint: '#9C99B5',
+  // Brand — GOLD
+  brand: '#B8860B',
+  brandStrong: '#946E12',
+  brandDim: 'rgba(184,134,11,.12)',
+  brandBorder: 'rgba(184,134,11,.30)',
+  /** Gold gradient stops for the logo mark / featured fills. */
+  brandGradientFrom: '#946E12',
+  brandGradientTo: '#E2C66A',
+  // Status — aqua is the workshop accent (teal).
+  aqua: '#0E9F8C',
+  aquaDim: 'rgba(14,159,140,.10)',
+  amber: '#C2700A',
+  amberDim: 'rgba(217,119,6,.12)',
+  green: '#15803D',
+  greenDim: 'rgba(21,128,61,.10)',
+  blue: '#2563EB',
+  blueDim: 'rgba(37,99,235,.08)',
+  rose: '#E11D48',
+  roseDim: 'rgba(225,29,72,.08)',
+  // Elevation + radii
+  shadow: '0 1px 3px rgba(28,25,60,.06),0 4px 14px rgba(28,25,60,.05)',
+  radius: '16px',
+  radiusSm: '10px',
+  radiusFull: '99px',
+} as const;
+
+/** Dark variant of the OSALPHA gold tokens (`[data-theme="dark"]`). */
+export const osalphaDark = {
+  canvas: '#12101F',
+  surface: '#1A1730',
+  surface2: '#231F3D',
+  border: 'rgba(167,160,210,.10)',
+  borderStrong: 'rgba(167,160,210,.20)',
+  ink: '#EDEBFA',
+  muted: '#A7A0C8',
+  faint: '#6F6A92',
+  // Brand brightens in dark.
+  brand: '#E3B341',
+  brandStrong: '#C9A227',
+  brandDim: 'rgba(227,179,65,.12)',
+  brandBorder: 'rgba(227,179,65,.30)',
+  brandGradientFrom: '#C9A227',
+  brandGradientTo: '#E2C66A',
+  aqua: '#2DD4BF',
+  aquaDim: 'rgba(45,212,191,.10)',
+  amber: '#FBBF24',
+  amberDim: 'rgba(251,191,36,.10)',
+  green: '#34D399',
+  greenDim: 'rgba(52,211,153,.10)',
+  blue: '#60A5FA',
+  blueDim: 'rgba(96,165,250,.10)',
+  rose: '#FB7185',
+  roseDim: 'rgba(251,113,133,.10)',
+  shadow: 'none',
+  radius: '16px',
+  radiusSm: '10px',
+  radiusFull: '99px',
+} as const;
+
+export type OsalphaTokens = typeof osalpha;
+
 export const spacing = {
   xs: '0.25rem',
   sm: '0.5rem',
@@ -286,6 +369,8 @@ export const tokens = {
   colors,
   eos,
   eosDark,
+  osalpha,
+  osalphaDark,
   spacing,
   radii,
   fontSizes,
