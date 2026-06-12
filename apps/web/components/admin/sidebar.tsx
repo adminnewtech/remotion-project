@@ -49,6 +49,7 @@ const GROUPS: NavGroup[] = [
       { key: 'overview', href: '', labelAr: 'نظرة عامة', labelEn: 'Overview', icon: 'overview', roles: ['admin', 'employee'] },
       { key: 'orders', href: '/orders', labelAr: 'الطلبات', labelEn: 'Orders', icon: 'orders', roles: ['admin', 'employee'], badge: '23', badgeTone: 'brand' },
       { key: 'catalog', href: '/catalog', labelAr: 'المنتجات والمخزون', labelEn: 'Products & inventory', icon: 'catalog', roles: ['admin', 'employee'] },
+      { key: 'purchasing', href: '/purchasing', labelAr: 'المشتريات', labelEn: 'Purchasing', icon: 'accounting', roles: ['admin', 'employee'] },
       { key: 'cashier', href: '/cashier', labelAr: 'الكاشير', labelEn: 'Cashier', icon: 'cashier', roles: ['admin', 'employee'], badge: 'وردية', badgeTone: 'warn' },
     ],
   },

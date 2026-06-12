@@ -14,6 +14,7 @@ export interface PosProduct {
   productId: string;
   name: string;
   sku: string | null;
+  barcode: string | null;
   price: number;
   image: string | null;
   stock: number;
@@ -37,7 +38,7 @@ export async function fetchPosProducts(): Promise<PosData> {
       if (products && products.length) {
         const pids = (products as ProductRow[]).map((p) => p.id);
         const [{ data: variants }, { data: media }] = await Promise.all([
-          client.from('product_variants').select('id, product_id, sku, price, sale_price, is_active').in('product_id', pids),
+          client.from('product_variants').select('id, product_id, sku, barcode, price, sale_price, is_active').in('product_id', pids),
           client.from('product_media').select('product_id, url, sort').in('product_id', pids).order('sort', { ascending: true }),
         ]);
         const vrows = (variants ?? []) as VariantRow[];
@@ -71,6 +72,7 @@ export async function fetchPosProducts(): Promise<PosData> {
             productId: p.id,
             name: p.name_ar || p.name_en,
             sku: v.sku,
+            barcode: v.barcode,
             price: v.sale_price ?? v.price,
             image: imgBy.get(p.id) ?? null,
             stock: stockBy.get(v.id) ?? 0,
@@ -87,12 +89,12 @@ export async function fetchPosProducts(): Promise<PosData> {
 }
 
 const SAMPLE: PosProduct[] = [
-  { variantId: 's1', productId: 'p1', name: 'داش كام أزدوم M660', sku: 'CA-01001', price: 79.0, image: null, stock: 99 },
-  { variantId: 's2', productId: 'p2', name: 'قفل ذكي Smart Lock S630 Max', sku: 'SH-01003', price: 59.0, image: null, stock: 61 },
-  { variantId: 's3', productId: 'p3', name: 'شاشة السينما المنزلية 100 انش', sku: 'TP-02004', price: 65.9, image: null, stock: 78 },
-  { variantId: 's4', productId: 'p4', name: 'كيبل Mcdodo 4 في 1', sku: 'MA-01006', price: 3.95, image: null, stock: 107 },
-  { variantId: 's5', productId: 'p5', name: 'شاحن سيارة 4 في 1', sku: 'CA-04002', price: 8.5, image: null, stock: 22 },
-  { variantId: 's6', productId: 'p6', name: 'بروجكتر Xnano Ultra 360', sku: 'TP-01003', price: 89.9, image: null, stock: 0 },
+  { variantId: 's1', productId: 'p1', name: 'داش كام أزدوم M660', sku: 'CA-01001', barcode: null, price: 79.0, image: null, stock: 99 },
+  { variantId: 's2', productId: 'p2', name: 'قفل ذكي Smart Lock S630 Max', sku: 'SH-01003', barcode: null, price: 59.0, image: null, stock: 61 },
+  { variantId: 's3', productId: 'p3', name: 'شاشة السينما المنزلية 100 انش', sku: 'TP-02004', barcode: null, price: 65.9, image: null, stock: 78 },
+  { variantId: 's4', productId: 'p4', name: 'كيبل Mcdodo 4 في 1', sku: 'MA-01006', barcode: null, price: 3.95, image: null, stock: 107 },
+  { variantId: 's5', productId: 'p5', name: 'شاحن سيارة 4 في 1', sku: 'CA-04002', barcode: null, price: 8.5, image: null, stock: 22 },
+  { variantId: 's6', productId: 'p6', name: 'بروجكتر Xnano Ultra 360', sku: 'TP-01003', barcode: null, price: 89.9, image: null, stock: 0 },
 ];
 
 interface ProductRow {
@@ -104,6 +106,7 @@ interface VariantRow {
   id: string;
   product_id: string;
   sku: string | null;
+  barcode: string | null;
   price: number;
   sale_price: number | null;
   is_active: boolean;

@@ -24,7 +24,7 @@ export function Pos({ data }: { data: PosData }) {
   const products = useMemo(() => {
     const term = q.trim().toLowerCase();
     const list = term
-      ? data.products.filter((p) => `${p.name} ${p.sku ?? ''}`.toLowerCase().includes(term))
+      ? data.products.filter((p) => `${p.name} ${p.sku ?? ''} ${p.barcode ?? ''}`.toLowerCase().includes(term))
       : data.products;
     return list.slice(0, 60);
   }, [data.products, q]);
@@ -80,7 +80,7 @@ export function Pos({ data }: { data: PosData }) {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder={ar ? 'ابحث عن منتج أو SKU…' : 'Search product or SKU…'}
+              placeholder={ar ? 'امسح باركود أو ابحث (اسم/SKU)…' : 'Scan barcode or search (name/SKU)…'}
               className="w-full rounded-osa-sm border border-osa-border bg-osa-surface-2 px-3 py-2 text-[13px] text-osa-ink outline-none focus:border-osa-brand-border"
             />
           </div>
