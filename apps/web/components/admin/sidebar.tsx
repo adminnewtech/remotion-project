@@ -68,6 +68,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { key: 'customers', href: '/customers', labelAr: 'العملاء', labelEn: 'Customers', icon: 'customers', roles: ['admin', 'employee'] },
       { key: 'chats', href: '/support', labelAr: 'المحادثات', labelEn: 'Conversations', icon: 'chats', roles: ['admin', 'employee'], badge: '12', badgeTone: 'brand' },
+      { key: 'automation', href: '/automation', labelAr: 'الأتمتة', labelEn: 'Automation', icon: 'campaigns', roles: ['admin'] },
       { key: 'campaigns', href: '/marketing', labelAr: 'الحملات', labelEn: 'Campaigns', icon: 'campaigns', roles: ['admin'] },
     ],
   },
