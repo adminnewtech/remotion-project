@@ -12,9 +12,13 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
+      { protocol: 'https', hostname: 'cdn.shopify.com' },
+      { protocol: 'https', hostname: '**.myshopify.com' },
       { protocol: 'https', hostname: 'imagedelivery.net' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400,
   },
   experimental: {
     // Keep RSC payloads lean for the large catalog pages.
