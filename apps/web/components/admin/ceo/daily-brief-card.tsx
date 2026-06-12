@@ -14,7 +14,7 @@ import { SimpleMarkdown } from './markdown';
  * (ai.triggerDailyReport) and swaps in the fresh result.
  */
 export function DailyBriefCard({ initial }: { initial: AiReport | null }) {
-  const { t, locale } = useT();
+  const { locale } = useT();
   const supabase = useSupabase();
   const ar = locale === 'ar';
   const [report, setReport] = useState<AiReport | null>(initial);
@@ -59,7 +59,7 @@ export function DailyBriefCard({ initial }: { initial: AiReport | null }) {
           </div>
         </div>
         <Button size="sm" variant="primary" onClick={() => void generate()} loading={busy}>
-          {ar ? 'توليد الآن' : t('common.generateNow') || 'Generate now'}
+          {ar ? 'توليد الآن' : 'Generate now'}
         </Button>
       </div>
 

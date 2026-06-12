@@ -19,7 +19,7 @@ interface ChatTurn {
  * `ai.askCopilot`. Renders answers with the lightweight markdown renderer.
  */
 export function CopilotWidget() {
-  const { t, locale } = useT();
+  const { locale } = useT();
   const supabase = useSupabase();
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [input, setInput] = useState('');
@@ -155,7 +155,7 @@ export function CopilotWidget() {
           className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
         />
         <Button size="sm" onClick={() => void send()} disabled={busy || !input.trim()}>
-          {t('common.send') || (ar ? 'إرسال' : 'Send')}
+          {ar ? 'إرسال' : 'Send'}
         </Button>
       </div>
     </div>
