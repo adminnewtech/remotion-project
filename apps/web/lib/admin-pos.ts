@@ -20,12 +20,108 @@ export interface PosProduct {
   stock: number;
 }
 
+export interface PosDiscount {
+  id: string;
+  code: string;
+  kind: 'percent' | 'amount' | 'free_delivery';
+  value: number;
+  minSubtotal: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  usageLimit: number | null;
+  usedCount: number;
+}
+
+export interface PosShift {
+  id: string;
+  openingFloat: number;
+  openedAt: string;
+  cashSales: number;
+  knetSales: number;
+  orderCount: number;
+}
+
+export interface PosHold {
+  id: string;
+  orderNumber: string;
+  total: number;
+  itemCount: number;
+  createdAt: string;
+}
+
 export interface PosData {
+  live: boolean;
+  products: PosProduct[];
+  discounts: PosDiscount[];
+  shift: PosShift | null;
+}
+
+/** Load everything the cashier screen needs: products, active discounts, open shift. */
+export async function fetchPosData(): Promise<PosData> {
+  const products = await fetchPosProducts();
+  const client = await getServerClient();
+  if (!client) {
+    return { ...products, discounts: SAMPLE_DISCOUNTS, shift: null };
+  }
+  const [discounts, shift] = await Promise.all([fetchActiveDiscounts(client), fetchOpenShift(client)]);
+  return { ...products, discounts, shift };
+}
+
+async function fetchActiveDiscounts(client: NonNullable<Awaited<ReturnType<typeof getServerClient>>>): Promise<PosDiscount[]> {
+  try {
+    const { data } = await client
+      .from('discounts')
+      .select('id, code, kind, value, min_subtotal, starts_at, ends_at, usage_limit, used_count')
+      .eq('is_active', true)
+      .limit(100);
+    return ((data ?? []) as DiscountRow[]).map((d) => ({
+      id: d.id,
+      code: d.code,
+      kind: d.kind,
+      value: Number(d.value),
+      minSubtotal: Number(d.min_subtotal ?? 0),
+      startsAt: d.starts_at,
+      endsAt: d.ends_at,
+      usageLimit: d.usage_limit,
+      usedCount: d.used_count ?? 0,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function fetchOpenShift(client: NonNullable<Awaited<ReturnType<typeof getServerClient>>>): Promise<PosShift | null> {
+  try {
+    const { data: auth } = await client.auth.getUser();
+    const uid = auth?.user?.id;
+    if (!uid) return null;
+    const { data } = await client
+      .from('pos_shifts')
+      .select('id, opening_float, opened_at, cash_sales, knet_sales, order_count')
+      .eq('cashier_id', uid)
+      .eq('status', 'open')
+      .maybeSingle();
+    if (!data) return null;
+    const s = data as ShiftRow;
+    return {
+      id: s.id,
+      openingFloat: Number(s.opening_float),
+      openedAt: s.opened_at,
+      cashSales: Number(s.cash_sales ?? 0),
+      knetSales: Number(s.knet_sales ?? 0),
+      orderCount: s.order_count ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+interface ProductsResult {
   live: boolean;
   products: PosProduct[];
 }
 
-export async function fetchPosProducts(): Promise<PosData> {
+export async function fetchPosProducts(): Promise<ProductsResult> {
   const client = await getServerClient();
   if (client) {
     try {
@@ -111,3 +207,27 @@ interface VariantRow {
   sale_price: number | null;
   is_active: boolean;
 }
+interface DiscountRow {
+  id: string;
+  code: string;
+  kind: 'percent' | 'amount' | 'free_delivery';
+  value: number;
+  min_subtotal: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  usage_limit: number | null;
+  used_count: number;
+}
+interface ShiftRow {
+  id: string;
+  opening_float: number;
+  opened_at: string;
+  cash_sales: number | null;
+  knet_sales: number | null;
+  order_count: number;
+}
+
+const SAMPLE_DISCOUNTS: PosDiscount[] = [
+  { id: 'd1', code: 'NEWTECH10', kind: 'percent', value: 10, minSubtotal: 0, startsAt: null, endsAt: null, usageLimit: null, usedCount: 0 },
+  { id: 'd2', code: 'KW5', kind: 'amount', value: 5, minSubtotal: 25, startsAt: null, endsAt: null, usageLimit: null, usedCount: 0 },
+];
