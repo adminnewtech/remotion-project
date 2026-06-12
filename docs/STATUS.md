@@ -1,6 +1,6 @@
 # Elite v1 — Live Status
 
-_Last updated: 2026-06-12 (phases 0027–0036 code-complete, pending DB apply)_
+_Last updated: 2026-06-12 (phases 0027–0037 fully live — all migrations applied to production DB)_
 
 This page tracks what is **actually live** right now (versus the plan in
 `ROADMAP.md`). It is the quick "is it up, and where" reference.
@@ -15,15 +15,15 @@ This page tracks what is **actually live** right now (versus the plan in
 | Quality gates (typecheck+lint+**test 55**+build) | 🟢 CI-enforced · +16 admin e2e |
 | **Accounting (double-entry, auto-posting)** | 🟢 Live — migration 0025, P&L on /admin/finance |
 | **CRM automation engine + runner** | 🟢 Live — migration 0026, /admin/automation |
-| **ERP: cycle counts + reorder + van stock** | 🟡 Code-complete (0027) — DB migration pending |
-| **ERP: landed costs + warranties** | 🟡 Code-complete (0028) — DB migration pending |
-| **Commerce: bundles + gift cards** | 🟡 Code-complete (0029) — DB migration pending |
-| **Commerce: pickup + wishlists + reviews** | 🟡 Code-complete (0030) — DB migration pending |
-| **CRM: pipeline kanban (crm_deals)** | 🟡 Code-complete (0031) — DB migration pending |
-| **WhatsApp inbox + templates** | 🟡 Code-complete (0032) — DB migration pending |
-| **Accounting: COGS + supplier payments + posting rules** | 🟡 Code-complete (0033) — DB migration pending |
-| **Finance: KNET reconciliation + COD remittances** | 🟡 Code-complete (0034) — DB migration pending |
-| **AI agents: sales + triage + HITL approvals** | 🟡 Code-complete (0035+0036) — DB migration pending |
+| **ERP: cycle counts + reorder + van stock** | 🟢 Live — migration 0027 applied |
+| **ERP: landed costs + warranties** | 🟢 Live — migration 0028 applied |
+| **Commerce: bundles + gift cards** | 🟢 Live — migration 0029 applied |
+| **Commerce: pickup + wishlists + reviews** | 🟢 Live — migration 0030 applied |
+| **CRM: pipeline kanban (crm_deals)** | 🟢 Live — migration 0031 applied |
+| **WhatsApp inbox + templates** | 🟢 Live — migration 0032 applied (7 templates seeded) |
+| **Accounting: COGS + supplier payments + posting rules** | 🟢 Live — migration 0033 applied |
+| **Finance: KNET reconciliation + COD remittances** | 🟢 Live — migration 0034 applied |
+| **AI agents: sales + triage + HITL approvals + kill switches** | 🟢 Live — migrations 0035+0036+0037 applied; 7 edge functions ACTIVE |
 | Supabase project | 🟢 Provisioned (schema + RLS + seed) |
 | Catalog | 🟢 Seeded from `newtechq8.com` (24 products) |
 | Auth (phone OTP + email/password) | 🟢 Live |
@@ -48,9 +48,7 @@ This page tracks what is **actually live** right now (versus the plan in
 | Publishable (anon) key | public-safe, RLS-protected (see `DEPLOYMENT.md`) |
 | Service role key | secret — Vercel/edge env only |
 
-**Applied:** migrations `0001`–`0026` (commerce, logistics, omnichannel, AI layer, finance/marketing, settings/zones, order audit trail, inventory ledger+purchasing+serials, security hardenings, returns/RMA, channels+loyalty, CRM notes, appointments, double-entry accounting, automation engine).
-
-**Pending apply (code on branch `claude/trusting-dirac-2150f9`, PR #10):** migrations `0027`–`0036` — run `supabase/migrations/ALL_0027_to_0036_combined.sql` in the [SQL editor](https://supabase.com/dashboard/project/wslvotaodwdftmexkfpd/sql/new) to activate all ERP/CRM/WhatsApp/AI-agent features.
+**Applied:** migrations `0001`–`0037` — all phases live (commerce, logistics, omnichannel, AI layer, finance/marketing, settings/zones, order audit trail, inventory ledger+purchasing+serials, security hardenings, returns/RMA, channels+loyalty, CRM notes, appointments, double-entry accounting, automation engine, ERP cycle counts+warranties+landed costs, bundles+gift cards, pickup+wishlists+reviews, CRM pipeline kanban, WhatsApp inbox, accounting completion, KNET reconciliation, AI agent actions+evals+kill switches).
 
 ## Catalog (seeded)
 
