@@ -8,6 +8,7 @@ import {
   fetchRelatedProducts,
   fetchInStock,
 } from '@/lib/data';
+import { isWishlisted } from '@/components/product/wishlist-actions';
 import { ProductDetail } from '@/components/product-detail';
 import { ProductCard } from '@/components/product-card';
 import {
@@ -62,10 +63,11 @@ export default async function ProductPage({
   const product = await fetchProduct(slug);
   if (!product) notFound();
 
-  const [reviews, related, inStock] = await Promise.all([
+  const [reviews, related, inStock, initialWishlisted] = await Promise.all([
     fetchReviews(product.id),
     fetchRelatedProducts(product, 4),
     fetchInStock(product.variants.map((v) => v.id)),
+    isWishlisted(product.id),
   ]);
 
   const avgRating = reviews.length
@@ -126,7 +128,7 @@ export default async function ProductPage({
         </span>
       </nav>
 
-      <ProductDetail product={product} reviews={reviews} inStock={inStock} />
+      <ProductDetail product={product} reviews={reviews} inStock={inStock} initialWishlisted={initialWishlisted} />
 
       {related.length > 0 && (
         <section className="mt-14">

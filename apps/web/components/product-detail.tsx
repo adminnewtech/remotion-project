@@ -22,10 +22,13 @@ export function ProductDetail({
   product,
   reviews,
   inStock = null,
+  initialWishlisted = false,
 }: {
   product: ProductWithVariants;
   reviews: Review[];
   inStock?: boolean | null;
+  /** Server-resolved wishlist state passed from the RSC page. */
+  initialWishlisted?: boolean;
 }) {
   const { t, locale } = useT();
 
@@ -69,6 +72,7 @@ export function ProductDetail({
           avgRating={avgRating}
           reviewCount={reviews.length}
           onVariantChange={onVariantChange}
+          initialWishlisted={initialWishlisted}
         />
       </div>
 
