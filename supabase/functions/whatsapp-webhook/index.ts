@@ -30,6 +30,7 @@
 import { serve } from "https://deno.land/std/http/server.ts";
 import { handlePreflight, json, jsonError } from "../_shared/cors.ts";
 import { getAdminClient, getUserFromRequest, AuthError } from "../_shared/supabaseAdmin.ts";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const VERIFY_TOKEN = Deno.env.get("WHATSAPP_VERIFY_TOKEN") ?? "";
 const PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") ?? "";
@@ -84,6 +85,20 @@ function normalizePhone(raw: string): string {
   if (digits.length === 8) return `965${digits}`;
   return digits;
 }
+
+/** Read the AI kill-switch map from app_settings. Returns true (enabled) by default. */
+async function checkAgentKillSwitch(sb: SupabaseClient, key: string): Promise<boolean> {
+  try {
+    const { data } = await sb.from('app_settings').select('ai').single();
+    const ai = (data as { ai?: Record<string, boolean> } | null)?.ai ?? {};
+    return ai[key] !== false; // default true (enabled) unless explicitly false
+  } catch {
+    return true; // fail open
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+declare const EdgeRuntime: any;
 
 serve(async (req: Request): Promise<Response> => {
   const preflight = handlePreflight(req);
@@ -199,6 +214,27 @@ serve(async (req: Request): Promise<Response> => {
             .from("tickets")
             .update({ updated_at: new Date().toISOString(), status: "open" })
             .eq("id", ticket.id);
+
+          // After recording inbound message, invoke agent-sales asynchronously.
+          const agentEnabled = await checkAgentKillSwitch(admin, 'sales_agent');
+          if (agentEnabled) {
+            // Fire-and-forget — don't await so webhook returns fast
+            EdgeRuntime?.waitUntil?.(
+              fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/agent-sales`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                },
+                body: JSON.stringify({
+                  phone: waId,
+                  message: text,
+                  wa_id: waId,
+                  ticket_id: ticket.id,
+                }),
+              }).catch((e: unknown) => console.error('[wa-webhook] agent-sales invoke failed:', e))
+            );
+          }
 
           // Notify ops (service-role rpc). Bound to the ticket owner if known,
           // otherwise to each ops user is out of scope — we enqueue for the
