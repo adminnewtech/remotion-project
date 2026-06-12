@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/admin/ui';
 import type { DispatchData, DispatchTask } from '@/lib/admin-dispatch';
 import { reassignTask, autoAssignTasks } from '@/app/[locale]/admin/dispatch/actions';
 import { LiveOpsMap } from './live-map';
+import { isLate } from '@/lib/pure/ops';
 
 const CARD = 'rounded-osa border border-osa-border bg-osa-surface p-3 shadow-osa';
 
@@ -41,6 +42,7 @@ export function DispatchBoard({ data }: { data: DispatchData }) {
   const drivers = data.staff.filter((s) => s.role === 'driver');
   const technicians = data.staff.filter((s) => s.role === 'technician');
   const fieldStaff = [...drivers, ...technicians];
+  const lateCount = tasks.filter((tk) => isLate(tk.window_end, tk.status)).length;
 
   function assign(taskId: string, assigneeId: string) {
     const next = assigneeId || null;
@@ -88,6 +90,12 @@ export function DispatchBoard({ data }: { data: DispatchData }) {
         title={t('admin.dispatch')}
         subtitle={t('nav.deliveries')}
         actions={
+          <>
+          {lateCount > 0 && (
+            <span className="me-2 rounded-full bg-osa-rose-dim px-3 py-[7px] text-[12px] font-bold text-osa-rose">
+              ⏰ {lateCount} {ar ? 'متأخرة عن الموعد' : 'past SLA'}
+            </span>
+          )}
           <button
             type="button"
             onClick={autoAssign}
@@ -96,6 +104,7 @@ export function DispatchBoard({ data }: { data: DispatchData }) {
           >
             {t('admin.autoAssign')}
           </button>
+          </>
         }
       />
 
@@ -135,6 +144,9 @@ export function DispatchBoard({ data }: { data: DispatchData }) {
                       </p>
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <StatusPill tone={statusTone(tk.status)}>{t(`taskStatus.${tk.status}`)}</StatusPill>
+                        {isLate(tk.window_end, tk.status) && (
+                          <span className="rounded-full bg-osa-rose-dim px-2 py-[2px] text-[10.5px] font-bold text-osa-rose">{ar ? 'متأخر' : 'LATE'}</span>
+                        )}
                       </div>
                       <select
                         className="mt-2.5 w-full rounded-osa-sm border border-osa-border bg-osa-surface px-2.5 py-2 text-[13px] text-osa-ink outline-none transition-colors focus:border-osa-brand-border"

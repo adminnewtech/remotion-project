@@ -26,6 +26,7 @@ export interface DispatchTask {
   customer: string;
   area: string | null;
   scheduled_for: string | null;
+  window_end: string | null;
   type: FulfillmentType;
   status: TaskStatus;
   assignee_id: string | null;
@@ -58,7 +59,7 @@ export async function fetchDispatch(): Promise<DispatchData> {
       const [{ data: taskRows }, { data: staffRows }] = await Promise.all([
         client
           .from('fulfillment_tasks')
-          .select('id, type, status, assignee_id, area, scheduled_for, orders(order_number, user_id)')
+          .select('id, type, status, assignee_id, area, scheduled_for, window_end, orders(order_number, user_id)')
           .order('scheduled_for', { ascending: true })
           .order('sequence', { ascending: true }),
         client
@@ -105,6 +106,7 @@ export async function fetchDispatch(): Promise<DispatchData> {
           customer: (r.orders?.user_id && names.get(r.orders.user_id)) || 'عميل',
           area: r.area,
           scheduled_for: r.scheduled_for,
+          window_end: r.window_end,
           type: r.type,
           status: r.status,
           assignee_id: r.assignee_id,
@@ -136,6 +138,7 @@ export async function fetchDispatch(): Promise<DispatchData> {
       customer: t.customer,
       area: t.area,
       scheduled_for: t.scheduled_for,
+      window_end: t.window_end ?? null,
       type: t.type,
       status: t.status,
       assignee_id: t.assignee_id,
@@ -162,6 +165,7 @@ interface TaskRow {
   assignee_id: string | null;
   area: string | null;
   scheduled_for: string | null;
+  window_end: string | null;
   orders: { order_number: string; user_id: string | null } | null;
 }
 

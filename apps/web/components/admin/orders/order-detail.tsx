@@ -70,6 +70,14 @@ export function OrderDetail({ detail }: { detail: AdminOrderDetail }) {
           >
             مرتجع / استرداد
           </button>
+          <a href={`${detail.id}/invoice?type=invoice`} target="_blank" rel="noreferrer"
+            className="rounded-osa-sm border border-osa-border-strong px-3 py-1.5 text-[12.5px] font-semibold text-osa-brand transition-transform hover:bg-osa-brand-dim active:scale-[.97]">
+            فاتورة
+          </a>
+          <a href={`${detail.id}/invoice?type=packing`} target="_blank" rel="noreferrer"
+            className="rounded-osa-sm border border-osa-border-strong px-3 py-1.5 text-[12.5px] font-semibold text-osa-blue transition-transform hover:bg-osa-blue-dim active:scale-[.97]">
+            بوليصة
+          </a>
           <button
             type="button"
             onClick={() => typeof window !== 'undefined' && window.print()}

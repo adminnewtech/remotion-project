@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { coerceLocale } from '@/lib/i18n';
 import { fetchCustomer360, type TimelineKind } from '@/lib/admin-customer';
 import { KpiCard } from '@/components/admin/ui';
+import { NotesPanel } from '@/components/admin/customers/notes-panel';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,11 +48,12 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         )}
       </div>
 
-      <div className="mb-[14px] grid grid-cols-2 gap-[14px] lg:grid-cols-4">
+      <div className="mb-[14px] grid grid-cols-2 gap-[14px] lg:grid-cols-5">
         <KpiCard label={ar ? 'الطلبات' : 'Orders'} value={String(c.orders)} />
         <KpiCard label={ar ? 'إجمالي الإنفاق' : 'Lifetime spend'} value={`${fmt(c.spent)} KWD`} />
         <KpiCard label={ar ? 'متوسط الطلب' : 'Avg order'} value={`${fmt(c.avgOrder)} KWD`} />
         <KpiCard label={ar ? 'تذاكر مفتوحة' : 'Open tickets'} value={String(c.openTickets)} />
+        <KpiCard label={ar ? 'نقاط الولاء' : 'Loyalty pts'} value={String(c.loyaltyPoints)} />
       </div>
 
 
@@ -68,6 +70,10 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
           </div>
         </div>
       )}
+
+      <div className="mb-[14px]">
+        <NotesPanel customerId={c.id} initial={c.notes} ar={ar} />
+      </div>
 
       <div className={`${CARD} p-5`}>
         <h2 className="mb-4 text-[14.5px] font-bold text-osa-ink">{ar ? 'السجل الكامل' : 'Unified timeline'}</h2>

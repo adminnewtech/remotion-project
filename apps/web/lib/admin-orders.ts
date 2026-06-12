@@ -22,6 +22,7 @@ import 'server-only';
 import { analytics, orders as ordersApi } from '@elite/core';
 import type { Order, OrderItem, OrderStatus } from '@elite/types';
 import { getServerClient } from '@/lib/supabase/server';
+import { normalizeChannel } from '@/lib/pure/ops';
 import {
   eventsToTimeline,
   deriveTimeline,
@@ -73,7 +74,11 @@ const PAY_BY_CHANNEL: Record<OrderChannel, string> = {
 
 /** Map a live `Order` row into the gold DataTable view shape. */
 function toRow(o: Order): AdminOrderRow {
-  const channel = channelFor(o.id || o.order_number);
+  // REAL channel column (migration 0022); hash only as legacy/sample fallback.
+  const stored = (o as unknown as { channel?: string }).channel;
+  const channel: OrderChannel = stored
+    ? (normalizeChannel(stored) === 'online' ? 'store' : (normalizeChannel(stored) as OrderChannel))
+    : channelFor(o.id || o.order_number);
   const itemsCount = Math.max(1, Math.round((o.subtotal || 0) / 80) || 1);
   return {
     id: o.id,
@@ -167,7 +172,10 @@ export async function fetchAdminOrder(id: string): Promise<OrderDetailData | nul
 }
 
 function toDetail(o: Order, items: OrderItem[], events: OrderEventRow[] = []): AdminOrderDetail {
-  const channel = channelFor(o.id || o.order_number);
+  const stored = (o as unknown as { channel?: string }).channel;
+  const channel: OrderChannel = stored
+    ? (normalizeChannel(stored) === 'online' ? 'store' : (normalizeChannel(stored) as OrderChannel))
+    : channelFor(o.id || o.order_number);
   return {
     id: o.id,
     number: o.order_number.startsWith('#') ? o.order_number : `#${o.order_number}`,

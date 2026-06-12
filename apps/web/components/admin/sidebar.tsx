@@ -58,6 +58,7 @@ const GROUPS: NavGroup[] = [
     labelEn: 'Services',
     items: [
       { key: 'workshop', href: '/workshop', labelAr: 'الورشة', labelEn: 'Workshop', icon: 'workshop', roles: ['admin', 'employee'] },
+      { key: 'appointments', href: '/appointments', labelAr: 'المواعيد', labelEn: 'Appointments', icon: 'installs', roles: ['admin', 'employee'] },
       { key: 'installs', href: '/dispatch', labelAr: 'التركيبات', labelEn: 'Installations', icon: 'installs', roles: ['admin', 'employee'], badge: '6', badgeTone: 'brand' },
     ],
   },

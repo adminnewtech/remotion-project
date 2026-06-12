@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { useT } from '@/lib/use-t';
 import { PageHeader } from '@/components/admin/ui';
 import type { PosData, PosProduct } from '@/lib/admin-pos';
-import { completeSale, type SaleLine, type PosPayment } from '@/app/[locale]/admin/cashier/actions';
+import { completeSale, saveQuote, type SaleLine, type PosPayment } from '@/app/[locale]/admin/cashier/actions';
 
 const CARD = 'rounded-osa border border-osa-border bg-osa-surface shadow-osa';
 const fmt = (n: number) => n.toFixed(3);
@@ -52,6 +52,18 @@ export function Pos({ data }: { data: PosData }) {
     setTicket([]);
     setDone(null);
     setErr(null);
+  }
+
+  function quote() {
+    if (!ticket.length) return;
+    const lines: SaleLine[] = ticket.map(({ variantId, name, sku, unitPrice, qty }) => ({ variantId, name, sku, unitPrice, qty }));
+    startTransition(async () => {
+      const res = await saveQuote(lines);
+      if (!res.ok) { setErr(res.error ? `تعذّر حفظ عرض السعر: ${res.error}` : 'تعذّر الحفظ'); return; }
+      setDone(`${ar ? 'عرض سعر' : 'Quote'} ${res.orderNumber}`);
+      if (res.orderId) window.open(`${window.location.pathname.replace(/cashier.*/, '')}orders/${res.orderId}/invoice?type=quote`, '_blank');
+      setTicket([]);
+    });
   }
 
   function pay(method: PosPayment) {
@@ -139,6 +151,10 @@ export function Pos({ data }: { data: PosData }) {
             </div>
             {done && <p className="mb-2 rounded-osa-sm bg-osa-green-dim px-3 py-2 text-[12.5px] font-semibold text-osa-green">{ar ? 'تم البيع' : 'Sale complete'} · {done}</p>}
             {err && <p className="mb-2 rounded-osa-sm bg-osa-rose-dim px-3 py-2 text-[12px] font-medium text-osa-rose">{err}</p>}
+            <button type="button" onClick={quote} disabled={pending || ticket.length === 0}
+              className="mb-2 w-full rounded-full border border-osa-brand-border bg-osa-brand-dim py-2 text-[12.5px] font-semibold text-osa-brand disabled:opacity-50">
+              {ar ? '📄 حفظ كعرض سعر' : '📄 Save as quote'}
+            </button>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"

@@ -140,6 +140,13 @@ export function CustomersView({ data }: { data: CustomersData }) {
                   <td className="border-b border-osa-border px-[18px] py-[11px]"><span className="num font-semibold text-osa-ink">{fmt(r.spent)} KWD</span></td>
                   <td className="border-b border-osa-border px-[18px] py-[11px]">
                     <span className="num text-[12px] text-osa-muted">{r.lastOrderAt ? r.lastOrderAt.slice(0, 10) : '—'}</span>
+                    {r.tier === 'at_risk' && r.phone && (
+                      <a
+                        href={`https://wa.me/${r.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(ar ? `مرحباً ${r.name.split(' ')[0]} 👋 اشتقنا لك في نيوتك! عروض جديدة تنتظرك 🎁` : `Hi ${r.name.split(' ')[0]}! We miss you at Newtech — new offers await 🎁`)}`}
+                        target="_blank" rel="noreferrer"
+                        className="ms-2 rounded-full bg-osa-green-dim px-2.5 py-[3px] text-[10.5px] font-bold text-osa-green"
+                      >{ar ? 'استرجاع 💬' : 'Win-back 💬'}</a>
+                    )}
                   </td>
                 </tr>
               );
