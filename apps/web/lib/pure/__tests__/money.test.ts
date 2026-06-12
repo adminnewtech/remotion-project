@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { round3, ticketTotal, deliveryFee } from '../money';
+import { round3, ticketTotal, deliveryFee, fulfillmentDeliveryFee } from '../money';
 
 describe('round3 (KWD fils)', () => {
   it('rounds to 3 decimals', () => {
@@ -30,5 +30,17 @@ describe('deliveryFee', () => {
   });
   it('zone fee below threshold', () => {
     expect(deliveryFee(9.999, 10, 2.5)).toBe(2.5);
+  });
+});
+
+describe('fulfillmentDeliveryFee', () => {
+  it('pickup is always free, regardless of subtotal', () => {
+    expect(fulfillmentDeliveryFee('pickup', 0, 10, 1.5)).toBe(0);
+    expect(fulfillmentDeliveryFee('pickup', 5, 10, 1.5)).toBe(0);
+    expect(fulfillmentDeliveryFee('pickup', 50, 10, 1.5)).toBe(0);
+  });
+  it('delivery falls back to threshold/zone logic', () => {
+    expect(fulfillmentDeliveryFee('delivery', 9.999, 10, 1.5)).toBe(1.5);
+    expect(fulfillmentDeliveryFee('delivery', 10, 10, 1.5)).toBe(0);
   });
 });

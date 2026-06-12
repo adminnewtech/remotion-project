@@ -9,6 +9,7 @@ export default function ConfirmationPage() {
   const { t, locale } = useT();
   const sp = useSearchParams();
   const orderNumber = sp.get('order') ?? 'NT-000000';
+  const pickupCode = sp.get('pickup');
   const base = `/${locale}`;
 
   return (
@@ -20,6 +21,15 @@ export default function ConfirmationPage() {
       </div>
       <h1 className="text-2xl font-bold">{t('checkout.orderPlaced')}</h1>
       <p className="mt-2 text-muted">{t('checkout.orderPlacedHint', { orderNumber })}</p>
+
+      {pickupCode && (
+        <div className="mx-auto mt-6 max-w-sm rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">{t('checkout.pickupCodeLabel')}</p>
+          <p className="mt-1 text-3xl font-bold tracking-[0.3em] text-primary">{pickupCode}</p>
+          <p className="mt-2 text-xs text-muted">{t('checkout.pickupCodeHint')}</p>
+        </div>
+      )}
+
       <div className="mt-8 flex justify-center gap-3">
         <Link href={`${base}/account`}>
           <Button>{t('orders.title')}</Button>
