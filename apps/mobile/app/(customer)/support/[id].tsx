@@ -60,6 +60,8 @@ export default function TicketThreadScreen() {
           sender_id: profile?.id ?? 'sample-user',
           body,
           attachments: [],
+          direction: 'inbound',
+          external_id: null,
           created_at: new Date().toISOString(),
         },
       ]);

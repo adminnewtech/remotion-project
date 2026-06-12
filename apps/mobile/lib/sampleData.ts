@@ -189,12 +189,12 @@ export const SAMPLE_CHECKLIST: InstallationJob['checklist'] = [
 export const KUWAIT_CENTER = { latitude: 29.3759, longitude: 47.9774 };
 
 export const SAMPLE_TICKETS: Ticket[] = [
-  { id: 'tk-1', order_id: 'o-1000', user_id: 'sample-user', kind: 'warranty', status: 'open', subject: 'Soundbar warranty question', assignee_id: null, zoho_desk_id: null, created_at: '2026-06-05T09:00:00.000Z' },
+  { id: 'tk-1', order_id: 'o-1000', user_id: 'sample-user', kind: 'warranty', status: 'open', subject: 'Soundbar warranty question', assignee_id: null, zoho_desk_id: null, channel: 'in_app', external_id: null, customer_phone: null, created_at: '2026-06-05T09:00:00.000Z' },
 ];
 
 export function sampleTicketMessages(ticketId: string): TicketMessage[] {
   return [
-    { id: `${ticketId}-m1`, ticket_id: ticketId, sender_id: 'sample-user', body: 'Hi, my soundbar keeps disconnecting.', attachments: [], created_at: '2026-06-05T09:00:00.000Z' },
-    { id: `${ticketId}-m2`, ticket_id: ticketId, sender_id: 'agent', body: 'Thanks for reaching out — could you share the model and purchase date?', attachments: [], created_at: '2026-06-05T09:05:00.000Z' },
+    { id: `${ticketId}-m1`, ticket_id: ticketId, sender_id: 'sample-user', body: 'Hi, my soundbar keeps disconnecting.', attachments: [], direction: 'inbound', external_id: null, created_at: '2026-06-05T09:00:00.000Z' },
+    { id: `${ticketId}-m2`, ticket_id: ticketId, sender_id: 'agent', body: 'Thanks for reaching out — could you share the model and purchase date?', attachments: [], direction: 'outbound', external_id: null, created_at: '2026-06-05T09:05:00.000Z' },
   ];
 }
