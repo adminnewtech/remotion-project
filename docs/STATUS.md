@@ -96,6 +96,12 @@ SaaS. Progress:
 - **Marketing** (`/admin/marketing`) — campaigns stored first-party in
   `marketing_campaigns`; the catalog feed (`/feeds/*`) is exported from our own
   `products`, not Shopify.
+- **Catalog sync** (`supabase/functions/sync-catalog` + the "مزامنة من Shopify"
+  button on `/admin/catalog`) — idempotent Shopify→our-DB import that adds new
+  products and refreshes price/sale/stock/images while **preserving our curated
+  categories**. Lets us keep pulling the live catalog into our own data while we
+  build toward independence. Needs `SHOPIFY_STORE` + `SHOPIFY_ADMIN_TOKEN`
+  function secrets.
 - **Dispatch** (`/admin/dispatch`) — live `fulfillment_tasks` with native
   auto-assign (least-loaded driver/technician), no third-party logistics.
 - **Staff** (`/admin/staff`) — native role management over `profiles`; no
