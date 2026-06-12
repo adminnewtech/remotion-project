@@ -83,7 +83,7 @@ Two Vercel projects are connected to this repo:
 | Project | Root dir | Status | Notes |
 |---|---|---|---|
 | `remotion-project-6dvr` | `apps/web` | 🟢 The real deploy | This is the live app. |
-| `remotion-project` | _(repo root)_ | 🟢 Fixed | Root-level `vercel.json` now targets `apps/web` (framework `nextjs`, build `pnpm --filter @elite/web build`, output `apps/web/.next`), so this project builds the web app too instead of erroring on the bare repo root. |
+| `remotion-project` | _(repo root)_ | 🔴 Errors until reconfigured | Legacy/duplicate. Its Root Directory must be set to `apps/web` — a per-project setting, not a repo file. Run the **Configure Vercel projects** workflow (`.github/workflows/configure-vercel.yml`, manual / `workflow_dispatch`, needs the `VERCEL_TOKEN` secret), or delete this project in the Vercel dashboard. A repo-root `vercel.json` does **not** work here: Vercel applies it to every connected project and breaks the apps/web-rooted one. |
 
 ## Known limitations / sandbox notes
 
