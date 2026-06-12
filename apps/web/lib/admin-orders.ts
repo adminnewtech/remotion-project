@@ -23,6 +23,12 @@ import { analytics, orders as ordersApi } from '@elite/core';
 import type { Order, OrderItem, OrderStatus } from '@elite/types';
 import { getServerClient } from '@/lib/supabase/server';
 import {
+  eventsToTimeline,
+  deriveTimeline,
+  type OrderEventRow,
+  type TimelineStep,
+} from '@/lib/pure/order-timeline';
+import {
   sampleAdminOrders,
   sampleAdminOrderDetail,
   type AdminOrderRow,
@@ -135,7 +141,22 @@ export async function fetchAdminOrder(id: string): Promise<OrderDetailData | nul
   if (client) {
     try {
       const o = await ordersApi.getOrder(client, id);
-      if (o) return { live: true, detail: toDetail(o, o.items) };
+      if (o) {
+        // REAL audit trail (migration 0018): the trigger logs every status
+        // transition, so the timeline shows actual event times, not synthetic.
+        let events: OrderEventRow[] = [];
+        try {
+          const { data } = await client
+            .from('order_events')
+            .select('kind, from_status, to_status, note, created_at')
+            .eq('order_id', id)
+            .order('created_at', { ascending: true });
+          events = (data ?? []) as OrderEventRow[];
+        } catch {
+          /* timeline falls back to derived */
+        }
+        return { live: true, detail: toDetail(o, o.items, events) };
+      }
     } catch {
       /* fall through */
     }
@@ -145,7 +166,7 @@ export async function fetchAdminOrder(id: string): Promise<OrderDetailData | nul
   return { live: false, detail: sample };
 }
 
-function toDetail(o: Order, items: OrderItem[]): AdminOrderDetail {
+function toDetail(o: Order, items: OrderItem[], events: OrderEventRow[] = []): AdminOrderDetail {
   const channel = channelFor(o.id || o.order_number);
   return {
     id: o.id,
@@ -179,42 +200,13 @@ function toDetail(o: Order, items: OrderItem[]): AdminOrderDetail {
     placedAt: o.placed_at ?? o.created_at,
     deliverySlot: o.delivery_slot,
     notes: o.notes,
-    timeline: buildTimeline(o.status, o.placed_at ?? o.created_at),
+    timeline: events.length
+      ? eventsToTimeline(events, o.status)
+      : deriveTimeline(o.status, o.placed_at ?? o.created_at),
   };
 }
 
-/** Derive a simple lifecycle timeline up to the current status. */
-export function buildTimeline(
-  status: OrderStatus,
-  placedAt: string,
-): { key: OrderStatus; label: string; at: string | null; done: boolean }[] {
-  const flow: { key: OrderStatus; label: string }[] = [
-    { key: 'paid', label: 'تم الدفع' },
-    { key: 'processing', label: 'قيد التجهيز' },
-    { key: 'out_for_delivery', label: 'قيد التوصيل' },
-    { key: 'installing', label: 'قيد التركيب' },
-    { key: 'completed', label: 'مكتمل' },
-  ];
-  const order: OrderStatus[] = [
-    'draft',
-    'pending_payment',
-    'paid',
-    'processing',
-    'out_for_delivery',
-    'delivered',
-    'installing',
-    'completed',
-  ];
-  const currentIdx = order.indexOf(status);
-  const base = new Date(placedAt).getTime();
-  return flow.map((step, i) => {
-    const stepIdx = order.indexOf(step.key);
-    const done = currentIdx >= stepIdx;
-    return {
-      key: step.key,
-      label: step.label,
-      at: done ? new Date(base + i * 2 * 3_600_000).toISOString() : null,
-      done,
-    };
-  });
+/** Legacy alias — timeline logic now lives (tested) in lib/pure/order-timeline. */
+export function buildTimeline(status: OrderStatus, placedAt: string): TimelineStep[] {
+  return deriveTimeline(status, placedAt);
 }

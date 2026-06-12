@@ -76,3 +76,35 @@ export async function setOrderStatus(
     return { ok: false, live: true, error: e instanceof Error ? e.message : 'unknown' };
   }
 }
+
+/** Append an ops note to the order's REAL activity log (order_events). */
+export async function addOrderNote(id: string, note: string): Promise<SetOrderStatusResult> {
+  const trimmed = note.trim();
+  if (!trimmed) return { ok: false, live: false, error: 'empty' };
+  const client = await getServerClient();
+  if (!client) return { ok: true, live: false };
+  try {
+    const { error } = await client
+      .from('order_events')
+      .insert({ order_id: id, kind: 'note', note: trimmed });
+    if (error) return { ok: false, live: true, error: error.message };
+    await client.from('orders').update({ internal_note: trimmed }).eq('id', id);
+    return { ok: true, live: true };
+  } catch (e) {
+    return { ok: false, live: true, error: e instanceof Error ? e.message : 'unknown' };
+  }
+}
+
+/** Replace the order's ops tags (filtering/automation hooks). */
+export async function setOrderTags(id: string, tags: string[]): Promise<SetOrderStatusResult> {
+  const clean = Array.from(new Set(tags.map((t) => t.trim()).filter(Boolean))).slice(0, 12);
+  const client = await getServerClient();
+  if (!client) return { ok: true, live: false };
+  try {
+    const { error } = await client.from('orders').update({ tags: clean }).eq('id', id);
+    if (error) return { ok: false, live: true, error: error.message };
+    return { ok: true, live: true };
+  } catch (e) {
+    return { ok: false, live: true, error: e instanceof Error ? e.message : 'unknown' };
+  }
+}

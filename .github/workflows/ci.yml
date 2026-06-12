@@ -21,6 +21,8 @@ jobs:
         run: pnpm typecheck
       - name: Lint (all packages)
         run: pnpm lint
+      - name: Unit tests (all packages)
+        run: pnpm test
 
   build:
     runs-on: ubuntu-latest

@@ -100,11 +100,17 @@ export async function fetchAnalytics(range: RangeKey = '30d'): Promise<Analytics
     const from = new Date(now.getTime() - days * 86_400_000);
     const prevFrom = new Date(now.getTime() - 2 * days * 86_400_000);
 
-    const [curr, prev, top, region] = await Promise.all([
+    const [curr, prev, top, region, payRows] = await Promise.all([
       analytics.getRevenueByDay(client, { from: ymd(from), to: ymd(now) }),
       analytics.getRevenueByDay(client, { from: ymd(prevFrom), to: ymd(from) }),
       analytics.getTopProducts(client, 4),
       analytics.getSalesByArea(client),
+      client
+        .from('payments')
+        .select('method, amount, status, created_at')
+        .eq('status', 'paid')
+        .gte('created_at', from.toISOString())
+        .then(({ data }) => (data ?? []) as { method: string | null; amount: number }[]),
     ]);
 
     if (!curr.length && !top.length && !region.length) return base;
@@ -155,14 +161,40 @@ export async function fetchAnalytics(range: RangeKey = '30d'): Promise<Analytics
         })()
       : base.byRegion;
 
+    // LIVE payment-methods split from real captured payments.
+    const PAY_AR: Record<string, string> = {
+      knet: 'كي-نت', cod: 'نقدي / عند الاستلام', apple_pay: 'Apple Pay',
+      google_pay: 'Google Pay', card: 'بطاقة',
+    };
+    let paymentMethods = base.paymentMethods;
+    let sampleSections = base.sampleSections;
+    if (payRows.length) {
+      const byMethod = new Map<string, number>();
+      for (const p of payRows) {
+        const key = p.method ?? 'other';
+        byMethod.set(key, (byMethod.get(key) ?? 0) + (p.amount || 0));
+      }
+      const totalPaid = Array.from(byMethod.values()).reduce((s, v) => s + v, 0) || 1;
+      paymentMethods = Array.from(byMethod.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([method, amount]) => ({
+          name: PAY_AR[method] ?? method,
+          value: Math.round(amount),
+          pct: Math.max(4, Math.round((amount / totalPaid) * 100)),
+        }));
+      sampleSections = sampleSections.filter((s) => s !== 'طرق الدفع');
+    }
+
     return {
       ...base,
       live: curr.length > 0 || top.length > 0 || region.length > 0,
+      sampleSections,
       kpis,
       salesSeries,
       prevSeries,
       topProducts,
       byRegion,
+      paymentMethods,
     };
   } catch {
     return base;

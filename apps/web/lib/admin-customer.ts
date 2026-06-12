@@ -8,6 +8,7 @@ import 'server-only';
  */
 import type { OrderStatus } from '@elite/types';
 import { getServerClient } from '@/lib/supabase/server';
+import { tierOf } from '@/lib/pure/customer-tier';
 
 export type TimelineKind = 'order' | 'payment' | 'ticket' | 'install';
 export interface TimelineEvent {
@@ -37,16 +38,6 @@ export interface Customer360 {
 
 const PAID: OrderStatus[] = ['paid', 'processing', 'out_for_delivery', 'delivered', 'installing', 'completed'];
 const round3 = (n: number) => Math.round(n * 1000) / 1000;
-const DAY = 86_400_000;
-
-function tierOf(orders: number, spent: number, lastAt: string | null): Customer360['tier'] {
-  if (orders === 0) return 'new';
-  const days = lastAt ? (Date.now() - new Date(lastAt).getTime()) / DAY : 999;
-  if (days > 120) return 'at_risk';
-  if (orders >= 5 && spent >= 500) return 'champion';
-  if (orders >= 2) return 'loyal';
-  return 'active';
-}
 
 export async function fetchCustomer360(id: string): Promise<Customer360 | null> {
   const client = await getServerClient();

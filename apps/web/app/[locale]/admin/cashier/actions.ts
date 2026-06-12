@@ -10,6 +10,7 @@
  * permitted by policy). No backend → documented no-op. Money is KWD.
  */
 import { getServerClient } from '@/lib/supabase/server';
+import { round3, ticketTotal } from '@/lib/pure/money';
 
 export interface SaleLine {
   variantId: string;
@@ -28,8 +29,6 @@ export interface CompleteSaleResult {
   error?: string;
 }
 
-const round3 = (n: number) => Math.round(n * 1000) / 1000;
-
 export async function completeSale(lines: SaleLine[], payment: PosPayment): Promise<CompleteSaleResult> {
   if (!lines.length) return { ok: false, live: false, error: 'empty' };
   const client = await getServerClient();
@@ -42,7 +41,7 @@ export async function completeSale(lines: SaleLine[], payment: PosPayment): Prom
     const uid = auth?.user?.id;
     if (!uid) return { ok: false, live: true, error: 'unauthenticated' };
 
-    const subtotal = round3(lines.reduce((s, l) => s + l.unitPrice * l.qty, 0));
+    const subtotal = ticketTotal(lines);
 
     const { data: order, error: oErr } = await client
       .from('orders')
