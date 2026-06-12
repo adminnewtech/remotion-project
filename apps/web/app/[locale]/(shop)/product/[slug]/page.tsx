@@ -102,27 +102,47 @@ export default async function ProductPage({
       />
 
       {/* Breadcrumb */}
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted">
-        <Link href={base} className="hover:text-primary">
+      <nav
+        aria-label={locale === 'ar' ? 'مسار التنقل' : 'Breadcrumb'}
+        className="mb-5 flex flex-wrap items-center gap-2 text-sm text-muted"
+      >
+        <Link href={base} className="transition hover:text-primary">
           {locale === 'ar' ? 'الرئيسية' : 'Home'}
         </Link>
         {product.category && (
           <>
-            <span aria-hidden>/</span>
-            <Link href={`${base}/category/${product.category.slug}`} className="hover:text-primary">
+            <Chevron />
+            <Link
+              href={`${base}/category/${product.category.slug}`}
+              className="transition hover:text-primary"
+            >
               {categoryName}
             </Link>
           </>
         )}
+        <Chevron />
+        <span className="line-clamp-1 max-w-[16rem] font-medium text-foreground" aria-current="page">
+          {localized(product, 'name', locale)}
+        </span>
       </nav>
 
       <ProductDetail product={product} reviews={reviews} inStock={inStock} />
 
       {related.length > 0 && (
-        <section className="mt-12">
-          <h2 className="mb-4 text-xl font-bold">
-            {locale === 'ar' ? 'منتجات ذات صلة' : 'Related products'}
-          </h2>
+        <section className="mt-14">
+          <div className="mb-5 flex items-end justify-between gap-3">
+            <h2 className="text-xl font-bold text-foreground sm:text-2xl">
+              {locale === 'ar' ? 'منتجات ذات صلة' : 'Related products'}
+            </h2>
+            {product.category && (
+              <Link
+                href={`${base}/category/${product.category.slug}`}
+                className="shrink-0 text-sm font-bold text-primary transition hover:text-primary-700"
+              >
+                {locale === 'ar' ? 'عرض الكل' : 'View all'}
+              </Link>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {related.map(({ product: p, display }) => (
               <ProductCard key={p.id} product={p} display={display} />
@@ -131,5 +151,22 @@ export default async function ProductPage({
         </section>
       )}
     </div>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-3.5 w-3.5 shrink-0 text-neutral-300 rtl:-scale-x-100"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
   );
 }
