@@ -8,6 +8,7 @@ import { Badge, Button, PriceTag, QuantityStepper, Rating } from '@elite/ui/web'
 import { useT } from '@/lib/use-t';
 import { localized } from '@/lib/i18n';
 import { useCart } from '@/components/cart-store';
+import { WishlistButton } from '@/components/product/wishlist-button';
 
 const WHATSAPP_NUMBER = '96550000000';
 
@@ -24,6 +25,7 @@ export function ProductBuyPanel({
   avgRating,
   reviewCount,
   onVariantChange,
+  initialWishlisted = false,
 }: {
   product: ProductWithVariants;
   image: string | null;
@@ -31,6 +33,8 @@ export function ProductBuyPanel({
   avgRating?: number;
   reviewCount: number;
   onVariantChange?: (variant: ProductVariant) => void;
+  /** Server-resolved initial wishlist state for this product. */
+  initialWishlisted?: boolean;
 }) {
   const { t, locale } = useT();
   const cart = useCart();
@@ -257,6 +261,11 @@ export function ProductBuyPanel({
         <WhatsAppGlyph />
         {locale === 'ar' ? 'اسأل عن المنتج' : 'Ask about this product'}
       </a>
+
+      {/* Wishlist toggle */}
+      <div className="mt-3">
+        <WishlistButton productId={product.id} initialWishlisted={initialWishlisted} />
+      </div>
 
       {/* Trust rows */}
       <ul className="mt-6 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
