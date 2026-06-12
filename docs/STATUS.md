@@ -10,7 +10,8 @@ This page tracks what is **actually live** right now (versus the plan in
 | Area | Status |
 |---|---|
 | Web storefront + admin | 🟢 Live on Vercel |
-| Admin dashboard (OSALPHA Gold) | 🟢 Overview, catalog, orders, analytics, dispatch, support, CEO, staff |
+| Admin dashboard (OSALPHA Gold) | 🟢 Every nav item live: overview, orders (+status→notify), catalog (+Shopify sync), **cashier/POS**, **workshop**, dispatch (+**live driver map**), **customers**, support, marketing, finance, staff, analytics, CEO — no "coming soon" left |
+| Native-first (drop Zoho/Shopify) | 🟢 Finance + Marketing run on our own tables (no Zoho Books / Meta-only / Shopify reads); dispatch + staff fully native |
 | Quality gates (typecheck + lint + build) | 🟢 Green across all 8 packages in CI |
 | Supabase project | 🟢 Provisioned (schema + RLS + seed) |
 | Catalog | 🟢 Seeded from `newtechq8.com` (24 products) |
@@ -84,6 +85,44 @@ Two Vercel projects are connected to this repo:
 |---|---|---|---|
 | `remotion-project-6dvr` | `apps/web` | 🟢 The real deploy | This is the live app. |
 | `remotion-project` | _(repo root)_ | 🔴 Errors until reconfigured | Legacy/duplicate. Its Root Directory must be set to `apps/web` — a per-project setting, not a repo file. Run the **Configure Vercel projects** workflow (`.github/workflows/configure-vercel.yml`, manual / `workflow_dispatch`, needs the `VERCEL_TOKEN` secret), or delete this project in the Vercel dashboard. A repo-root `vercel.json` does **not** work here: Vercel applies it to every connected project and breaks the apps/web-rooted one. |
+
+## Native-first strategy (replacing Zoho One + Shopify)
+
+The goal is to run the business entirely on this platform and retire external
+SaaS. Progress:
+
+- **Finance** (`/admin/finance`) — computed from our own `orders` + `payments`
+  and a native `expenses` table (migration 0016). No Zoho Books dependency.
+- **Marketing** (`/admin/marketing`) — campaigns stored first-party in
+  `marketing_campaigns`; the catalog feed (`/feeds/*`) is exported from our own
+  `products`, not Shopify.
+- **Catalog sync** (`supabase/functions/sync-catalog` + the "مزامنة من Shopify"
+  button on `/admin/catalog`) — idempotent Shopify→our-DB import that adds new
+  products and refreshes price/sale/stock/images while **preserving our curated
+  categories**. Lets us keep pulling the live catalog into our own data while we
+  build toward independence. Needs `SHOPIFY_STORE` + `SHOPIFY_ADMIN_TOKEN`
+  function secrets.
+- **Dispatch** (`/admin/dispatch`) — live `fulfillment_tasks` with native
+  auto-assign (least-loaded driver/technician), no third-party logistics.
+- **Staff** (`/admin/staff`) — native role management over `profiles`; no
+  external HR. Utilization is a real metric from active tasks.
+- **Cashier / POS** (`/admin/cashier`) — native in-store sales: ticket → cash/
+  KNET → creates a completed order + items + captured payment and decrements
+  inventory. Replaces any external POS.
+- **Customers** (`/admin/customers`) — CRM-lite from our own profiles + orders
+  (order count, lifetime spend, last order). No external CRM.
+- **Workshop** (`/admin/workshop`) — installation-job execution over
+  fulfillment_tasks + installation_jobs (checklist, photos, completion).
+- **Live ops map** (on `/admin/dispatch`) — Leaflet/OSM web map streaming
+  driver GPS from `driver_locations` over Supabase Realtime; the web
+  counterpart of the mobile MapTracker. No Google Maps key needed.
+- **Order status → customer notify** — admin status changes fire the `notify`
+  Edge Function (in-app, push, WhatsApp, email) automatically.
+
+Still external by necessity (no replacement intended yet): the **ad platforms
+themselves** (Meta/Google) consume our exported feeds; **payment gateway**
+(KNET/MyFatoorah). The legacy Zoho Books/Desk/Gmail/Meta adapter stubs in
+`packages/core/src/integrations` are now optional, not on the critical path.
 
 ## Known limitations / sandbox notes
 

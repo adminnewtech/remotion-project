@@ -13,6 +13,42 @@
 import { revalidatePath } from 'next/cache';
 import { getServerClient } from '@/lib/supabase/server';
 
+export interface SyncCatalogResult {
+  ok: boolean;
+  live: boolean;
+  created?: number;
+  updated?: number;
+  variants?: number;
+  images?: number;
+  error?: string;
+}
+
+/**
+ * Pull the live Shopify catalog into our DB via the `sync-catalog` Edge
+ * Function (idempotent; preserves our curated categories — see the function).
+ * No backend → documented no-op. Revalidates the catalog routes on success.
+ */
+export async function syncCatalog(): Promise<SyncCatalogResult> {
+  const client = await getServerClient();
+  if (!client) return { ok: true, live: false };
+  try {
+    const { data, error } = await client.functions.invoke('sync-catalog', { body: {} });
+    if (error) return { ok: false, live: true, error: error.message };
+    const r = (data ?? {}) as Record<string, number>;
+    revalidatePath('/[locale]/admin/catalog', 'page');
+    return {
+      ok: true,
+      live: true,
+      created: r.created ?? 0,
+      updated: r.updated ?? 0,
+      variants: r.variants ?? 0,
+      images: r.images ?? 0,
+    };
+  } catch (e) {
+    return { ok: false, live: true, error: e instanceof Error ? e.message : 'unknown' };
+  }
+}
+
 export interface ProductInput {
   id?: string;
   name_ar: string;

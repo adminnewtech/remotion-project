@@ -13,7 +13,7 @@ import type { Category } from '@elite/types';
 import { useT } from '@/lib/use-t';
 import { localized } from '@/lib/i18n';
 import type { CatalogProduct } from '@/lib/admin-catalog';
-import { setProductActive, setProductsActive } from './actions';
+import { setProductActive, setProductsActive, syncCatalog } from './actions';
 import {
   Money,
   StockPill,
@@ -42,6 +42,25 @@ export function CatalogList({
   const router = useRouter();
   const { toast } = useToast();
   const [, startTransition] = useTransition();
+  const [syncing, setSyncing] = useState(false);
+
+  function onSync() {
+    setSyncing(true);
+    startTransition(async () => {
+      const res = await syncCatalog();
+      setSyncing(false);
+      if (!res.ok) {
+        toast(res.error ? `تعذّرت المزامنة: ${res.error}` : 'تعذّرت المزامنة', { tone: 'error' });
+        return;
+      }
+      if (!res.live) {
+        toast('وضع تجريبي — لا يوجد خادم للمزامنة', { tone: 'info' });
+        return;
+      }
+      toast(`تمت المزامنة: ${res.created} جديد · ${res.updated} محدّث · ${res.variants} متغير`, { tone: 'success' });
+      router.refresh();
+    });
+  }
 
   // Optimistic active-state overrides keyed by product id.
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
@@ -171,6 +190,14 @@ export function CatalogList({
           <p className="text-[13px] text-osa-muted">إدارة الكتالوج، الأسعار، والمخزون</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onSync}
+            disabled={syncing}
+            className="inline-flex items-center gap-2 rounded-full border border-osa-border-strong bg-osa-surface px-4 py-[9px] text-[13px] font-semibold text-osa-muted transition-colors hover:bg-osa-surface-2 disabled:opacity-60"
+          >
+            {syncing ? '...مزامنة' : 'مزامنة من Shopify'}
+          </button>
           <Link
             href={`/${locale}/admin/catalog/inventory`}
             className="inline-flex items-center gap-2 rounded-full border border-osa-border-strong bg-osa-surface px-4 py-[9px] text-[13px] font-semibold text-osa-muted transition-colors hover:bg-osa-surface-2"
