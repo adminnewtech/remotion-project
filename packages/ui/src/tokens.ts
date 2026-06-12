@@ -99,6 +99,91 @@ export const colors = {
   ring: '#4338ca',
 } as const;
 
+/**
+ * Elite OS — "Light Pro" semantic palette.
+ *
+ * The premium, Linear/Stripe-grade surface system applied to the admin shell
+ * and global theme. These are the *semantic* tokens (canvas/panel/border/…)
+ * that map 1:1 to the `--eos-*` CSS variables (see web `globals.css`) and the
+ * Tailwind `colors.eos.*` tokens (see `@elite/config/tailwind-preset`).
+ *
+ * Default is light; a `.dark` variant (dark-navy panels) is exposed for a
+ * future toggle. Components should prefer these `eos` tokens for new surfaces.
+ */
+export const eos = {
+  /** App canvas behind panels. */
+  bg: '#f6f7fb',
+  /** Raised panel / card surface. */
+  panel: '#ffffff',
+  /** Subtle panel-2 (sticky table header, wells). */
+  panelMuted: '#f1f3f9',
+  /** Hairline border. */
+  border: '#e8ebf2',
+  /** Primary text. */
+  text: '#0f172a',
+  /** Secondary / muted text. */
+  muted: '#64748b',
+
+  /** Brand indigo. */
+  primary: '#4f46e5',
+  primaryHover: '#4338ca',
+  /** Tinted indigo wash (active rows, soft fills). */
+  primarySoft: '#eef2ff',
+  primaryText: '#3730a3',
+  /** Cyan accent. */
+  accent: '#06b6d4',
+
+  // Status — foreground + soft background pairs.
+  success: '#059669',
+  successBg: '#d1fae5',
+  info: '#2563eb',
+  infoBg: '#dbeafe',
+  warning: '#d97706',
+  warningBg: '#fef3c7',
+  danger: '#dc2626',
+  dangerBg: '#fee2e2',
+  neutral: '#64748b',
+  neutralBg: '#f1f5f9',
+
+  /** Fixed dark-navy admin sidebar rail. */
+  sidebar: '#0b1020',
+  sidebarText: '#cbd5e1',
+  sidebarMuted: '#64748b',
+} as const;
+
+/** Dark-navy variant of the `eos` semantic tokens (future `.dark` toggle). */
+export const eosDark = {
+  bg: '#0a0e17',
+  panel: '#0f1626',
+  panelMuted: '#131b2e',
+  border: '#1f2a44',
+  text: '#e8edf7',
+  muted: '#94a3b8',
+
+  primary: '#6366f1',
+  primaryHover: '#818cf8',
+  primarySoft: '#1e2440',
+  primaryText: '#c7d2fe',
+  accent: '#22d3ee',
+
+  success: '#34d399',
+  successBg: '#053a2b',
+  info: '#60a5fa',
+  infoBg: '#0b2545',
+  warning: '#fbbf24',
+  warningBg: '#3a2a06',
+  danger: '#f87171',
+  dangerBg: '#3a1212',
+  neutral: '#94a3b8',
+  neutralBg: '#1e293b',
+
+  sidebar: '#070a12',
+  sidebarText: '#cbd5e1',
+  sidebarMuted: '#64748b',
+} as const;
+
+export type EosTokens = typeof eos;
+
 export const spacing = {
   xs: '0.25rem',
   sm: '0.5rem',
@@ -113,7 +198,11 @@ export const radii = {
   sm: '0.25rem',
   DEFAULT: '0.5rem',
   md: '0.5rem',
+  /** Elite OS control radius (inputs, buttons, chips). */
+  control: '0.625rem', // 10px
   lg: '0.75rem',
+  /** Elite OS card radius. */
+  card: '0.75rem', // 12px
   xl: '1rem',
   '2xl': '1.5rem',
   full: '9999px',
@@ -165,6 +254,13 @@ export const shadows = {
   glow: '0 0 0 1px rgb(6 182 212 / 0.20), 0 8px 24px -6px rgb(6 182 212 / 0.45)',
   /** Inner shadow for inset fields/wells. */
   inner: 'inset 0 2px 4px 0 rgb(15 23 42 / 0.06)',
+  // --- Elite OS soft elevation (Light Pro) ---
+  /** EOS base hairline elevation for panels/cards. */
+  eos: '0 1px 2px rgba(16, 24, 40, 0.06)',
+  /** EOS hover lift for interactive cards. */
+  eosHover: '0 4px 16px -4px rgba(16, 24, 40, 0.12)',
+  /** EOS popover/dropdown elevation. */
+  eosPopover: '0 8px 24px -8px rgba(16, 24, 40, 0.18)',
 } as const;
 
 /**
@@ -188,6 +284,8 @@ export const zIndex = {
 /** Bundled tokens object for convenient single-import access. */
 export const tokens = {
   colors,
+  eos,
+  eosDark,
   spacing,
   radii,
   fontSizes,

@@ -31,7 +31,8 @@ const preset = {
           700: '#3730a3',
           800: '#312e81',
           900: '#1e1b4b',
-          DEFAULT: '#4338ca',
+          // Elite OS spec primary indigo.
+          DEFAULT: '#4f46e5',
           foreground: '#ffffff',
         },
         // Electric cyan accent.
@@ -106,6 +107,38 @@ const preset = {
         muted: '#64748b',
         border: '#e2e8f0',
         ring: '#4338ca',
+
+        // ── Elite OS — "Light Pro" semantic tokens ──────────────────────
+        // Backed by CSS variables (see web globals.css) so a `.dark` toggle
+        // re-themes everything without changing class names. Use as
+        // bg-eos-panel, text-eos-text, border-eos-border, etc.
+        eos: {
+          bg: 'var(--eos-bg)',
+          panel: 'var(--eos-panel)',
+          'panel-muted': 'var(--eos-panel-muted)',
+          border: 'var(--eos-border)',
+          text: 'var(--eos-text)',
+          muted: 'var(--eos-muted)',
+          primary: 'var(--eos-primary)',
+          'primary-hover': 'var(--eos-primary-hover)',
+          'primary-soft': 'var(--eos-primary-soft)',
+          'primary-text': 'var(--eos-primary-text)',
+          accent: 'var(--eos-accent)',
+          success: 'var(--eos-success)',
+          'success-bg': 'var(--eos-success-bg)',
+          info: 'var(--eos-info)',
+          'info-bg': 'var(--eos-info-bg)',
+          warning: 'var(--eos-warning)',
+          'warning-bg': 'var(--eos-warning-bg)',
+          danger: 'var(--eos-danger)',
+          'danger-bg': 'var(--eos-danger-bg)',
+          neutral: 'var(--eos-neutral)',
+          'neutral-bg': 'var(--eos-neutral-bg)',
+          // Admin sidebar rail (fixed dark navy in both themes).
+          sidebar: 'var(--eos-sidebar)',
+          'sidebar-text': 'var(--eos-sidebar-text)',
+          'sidebar-muted': 'var(--eos-sidebar-muted)',
+        },
       },
       fontFamily: {
         // Arabic-first: Cairo/Tajawal lead, then Latin fallbacks.
@@ -128,7 +161,11 @@ const preset = {
         sm: '0.25rem',
         DEFAULT: '0.5rem',
         md: '0.5rem',
+        // Elite OS control radius (inputs/buttons/chips) = 10px.
+        control: '0.625rem',
         lg: '0.75rem',
+        // Elite OS card radius = 12px.
+        card: '0.75rem',
         xl: '1rem',
         '2xl': '1.5rem',
         full: '9999px',
@@ -148,7 +185,11 @@ const preset = {
         md: '0 4px 6px -1px rgb(15 23 42 / 0.10), 0 2px 4px -2px rgb(15 23 42 / 0.10)',
         lg: '0 10px 15px -3px rgb(15 23 42 / 0.10), 0 4px 6px -4px rgb(15 23 42 / 0.10)',
         xl: '0 20px 25px -5px rgb(15 23 42 / 0.10), 0 8px 10px -6px rgb(15 23 42 / 0.10)',
-        focus: '0 0 0 3px rgb(67 56 202 / 0.35)',
+        focus: '0 0 0 3px rgb(79 70 229 / 0.30)',
+        // ── Elite OS soft elevation (Light Pro) ──
+        eos: '0 1px 2px rgba(16, 24, 40, 0.06)',
+        'eos-hover': '0 4px 16px -4px rgba(16, 24, 40, 0.12)',
+        'eos-popover': '0 8px 24px -8px rgba(16, 24, 40, 0.18)',
       },
     },
   },
