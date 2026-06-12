@@ -74,7 +74,7 @@ export function ProductDetail({
 
       <DetailsSection product={product} description={description} t={t} locale={locale} />
 
-      <ProductReviews reviews={reviews} />
+      <ProductReviews reviews={reviews} productId={product.id} />
     </>
   );
 }

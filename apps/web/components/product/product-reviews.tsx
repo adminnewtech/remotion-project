@@ -3,13 +3,15 @@
 import type { Review } from '@elite/types';
 import { Rating } from '@elite/ui/web';
 import { useT } from '@/lib/use-t';
+import { ReviewForm } from './review-form';
 
 /**
  * Reviews section scaffold. Shows an aggregate summary with a 5→1 star
  * histogram and the published reviews; a tasteful empty state ("be the first
- * to review") when there are none. Ready to wire to the reviews feature.
+ * to review") when there are none. Includes the ReviewForm for authenticated
+ * users to submit a new review (pending moderation).
  */
-export function ProductReviews({ reviews }: { reviews: Review[] }) {
+export function ProductReviews({ reviews, productId }: { reviews: Review[]; productId: string }) {
   const { t, locale } = useT();
 
   const count = reviews.length;
@@ -74,6 +76,9 @@ export function ProductReviews({ reviews }: { reviews: Review[] }) {
           </ul>
         </div>
       )}
+
+      {/* Submission form — always visible; form handles sign-in/duplicate states */}
+      <ReviewForm productId={productId} />
     </section>
   );
 }
