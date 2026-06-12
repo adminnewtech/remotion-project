@@ -158,7 +158,7 @@ export function StaffTable({ data }: { data: StaffData }) {
               </option>
             ))}
           </Select>
-          {inviteErr && <p className="text-[12px] font-medium text-osa-red">{inviteErr}</p>}
+          {inviteErr && <p className="text-[12px] font-medium text-osa-rose">{inviteErr}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setInvite(false)}>
               {t('common.cancel')}
