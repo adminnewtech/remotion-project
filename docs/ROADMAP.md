@@ -1,66 +1,71 @@
-# Elite v1 — Roadmap
+# Newtech OS — خارطة الطريق المتكاملة (الأحدث)
 
-> **Now live:** web storefront + admin on Vercel
-> (https://remotion-project-6dvr.vercel.app), Supabase project `elite-v1`
-> provisioned with schema/RLS and a seeded catalog. See `STATUS.md` for the
-> live snapshot.
+> **آخر تحديث: 2026-06-12** — هذه هي الخارطة الرسمية الوحيدة. التفاصيل الهندسية الكاملة لكل بند قادم (SQL، ملفات، اختبارات قبول): **`INTEGRATED_OS_BLUEPRINT.md`**. الحالة الحية: `STATUS.md` · قواعد البناء: `.claude/skills/newtech-os/SKILL.md` · دليل التطوير: `DEVELOPMENT.md`.
 
-## Phase 0 — Foundation ✅ done
-- Monorepo (pnpm + Turborepo), shared `types`, `core`, `ui`, `i18n`, `config` packages.
-- Full Supabase schema + RLS as migrations (the contract).
-- App scaffolds: Next.js web (storefront + admin), Expo mobile (customer/driver/technician).
-- Integration adapter stubs (Zoho Books, Zoho Desk, Gmail, Meta Ads, Cloudflare).
-- Docs: architecture, data model, features, roadmap. `.env.example`.
+---
 
-## Phase 1 — Vertical slice (provision + first real flow) 🟢 mostly live
-- ✅ Provisioned Supabase project + Vercel; loaded migrations `0001`–`0008`.
-- ✅ Seeded catalog from newtechq8.com (4 categories, 24 products, 30 variants).
-- ✅ Auth (phone OTP) live.
-- ✅ Customer: browse → product detail → cart → checkout (KNET sandbox) → order created.
-- ✅ Admin: see orders live, manage catalog/inventory.
-- 🟡 Notifications: order confirmation (push + email) — wiring in progress.
+## ✅ المُنجز (حي على الإنتاج — migrations 0001–0026)
 
-### Remaining to fully close Phase 1 (go-live)
-1. **Custom domain** — connect `newtechq8.com` (or a subdomain) to the Vercel
-   project; issue TLS; set canonical URLs + SEO metadata.
-2. **Full catalog sync** — promote the seed slice to the complete Shopify
-   catalog (re-run `scripts/sync-shopify-catalog.ts` / admin "Catalog" screen);
-   schedule incremental syncs.
-3. **Payments go-live** — swap KNET sandbox for production gateway keys
-   (MyFatoorah/Tap), configure webhooks + reconciliation, enable COD fee.
-4. **Mobile EAS builds** — `eas build` preview/production for the customer,
-   driver, and technician apps; internal distribution + store submission prep.
-5. **Cloudflare** — put DNS/CDN/WAF in front of the domain (caching rules, rate
-   limiting, bot protection) once the custom domain is connected.
+### الأساس والتجارة (0001–0015)
+- Monorepo (pnpm+Turbo): web (Next.js) + mobile (Expo: عميل/سائق/فني) + 5 حزم مشتركة.
+- المتجر الكامل: كتالوج (127 منتج) + بحث + سلة + **checkout حقيقي** (سلة خادم + عنوان + KNET) + تتبع حي.
+- Edge Functions: checkout، payment-webhook، dispatch (توزيع تلقائي)، notify (قنوات متعددة)، whatsapp/chatwoot webhooks، ai-copilot، daily-report.
+- أمان: RLS شامل + 3 جولات تحصين.
 
-## Phase 2 — Logistics & field service
-- Dispatch Edge Function (auto-assign by zone + manual override).
-- Driver app: task queue, live GPS, proof of delivery → customer live map.
-- Technician app: installation job flow, checklist, before/after photos, sign-off.
-- Real-time order/delivery/installation tracking for customers.
+### نظام الأدمن OSALPHA (0016–0024) — 18 صفحة حية
+| الموديل | أبرز ما فيه |
+|---|---|
+| الطلبات | **سجل تدقيق حقيقي** (trigger) + وسوم/ملاحظات + إشعار العميل التلقائي + **RMA كامل** (restock بالدفتر + استرداد) + **فواتير/بوليصة/عرض سعر A4** |
+| المخزون | **مواقع متعددة + دفتر حركات ذري ثابت** + تسويات بسبب إلزامي + تحويلات + **سيريالات/دفعات** + باركود |
+| المشتريات | موردون + PO بدورة حياة + **استلام بسيريالات** + إعادة طلب فورية من المخزون المنخفض |
+| الكاشير POS | بيع نقدي/كي-نت يخصم المخزون + **حفظ كعرض سعر** + بحث بالباركود + قناة `pos` حقيقية |
+| CRM-360 | تايملاين موحّد + شرائح RFM + CSV + **أجهزة بالسيريال** + **ملاحظات ومهام** + win-back واتساب + ولاء تلقائي |
+| التوزيع | لوحة + توزيع تلقائي (أقل تحميلاً) + **خريطة GPS حية** + شارات SLA |
+| المواعيد | تركيب / معاينة / **استلام من المحل** |
+| التحليلات | إيراد/منتجات/مناطق/**طرق دفع/قنوات/جدد-عائدين** حية |
+| الإعدادات | متجر + مناطق توصيل الكويت + دفع + إشعارات |
+| + | الورشة، الموظفون (أدوار native)، الحملات+الخصومات CRUD، لوحة الرئيس |
 
-## Phase 3 — Support, warranty & finance
-- In-app support chat + warranty claims, synced to Zoho Desk.
-- Digital warranty cards; warranty → repair/installation job.
-- Zoho Books sync: invoices, payments, expenses.
+### المرحلتان 1+2 من المخطط (0025–0026) ✅
+- **0025 المحاسبة**: شجرة حسابات كويتية + قيود مزدوجة (قيد متوازن إلزامي) + **ترحيل تلقائي** (دفعة/استرداد/مصروف/استلام مشتريات) + ميزان مراجعة/قائمة دخل/ميزانية + صفحة محاسبة حية.
+- **0026 أتمتة CRM**: workflows تصريحية (مشغّل→شرط→إجراء) + **runner منشور** (واتساب قوالب / مهام CRM) + لوحة `/admin/automation`.
 
-## Phase 4 — Growth & intelligence
-- Meta Ads: catalog feed + campaign/audience automation from admin.
-- Loyalty, referrals, wishlist, reviews surfacing.
-- AI layer: recommendations, support copilot, demand forecasting, smart dispatch.
-- Production hardening: load testing, observability, EAS production builds, store submission.
+### الجودة (مستمرة)
+- **55 اختبار وحدة** (`lib/pure/` — 8 وحدات) + **16 اختبار E2E** أدمن — كلها بوابات CI إلزامية.
 
-## Cross-cutting (every phase)
-- RLS coverage + security review before each provisioning step.
-- Arabic/English parity and RTL QA.
-- Analytics dashboards kept in sync with new modules.
+---
 
-## Provisioning checklist (go-live)
-1. ✅ Create Supabase project → set keys in `.env.local` / Vercel / EAS.
-2. ✅ `pnpm db:push` migrations; run `db:seed`.
-3. ✅ Deploy web to Vercel (live at https://remotion-project-6dvr.vercel.app).
-4. 🟡 Configure payment gateway (MyFatoorah/Tap) production keys + webhooks.
-5. 🔴 Connect custom domain + Cloudflare (DNS/CDN/WAF).
-6. 🔴 Full catalog sync from Shopify (beyond the seed slice).
-7. 🔴 Build mobile with EAS; smoke-test the full vertical slice.
-8. 🟡 Connect Zoho Books, Zoho Desk, Gmail, Meta Ads credentials.
+## ▶ القادم — حسب المخطط (التفاصيل الكاملة بالـBlueprint)
+
+### المرحلة 3 — التجارة المتقدمة (0027–0029)
+| # | البند | الجوهر |
+|---|---|---|
+| 0027 | **استلام من المحل بالـcheckout** | خيار pickup → كود استلام + موعد تلقائي (يبني على appointments) |
+| 0028 | **بطاقات هدايا** | دفتر معاملات + `redeem_gift_card()` + قيد التزام محاسبي (حساب 2100 جاهز) |
+| 0029 | **حزم منتج+تركيب** 🏆 | الميزة القاتلة: سطر سلة واحد → يولّد توصيل + مهمة تركيب + موعد تلقائياً |
+| — | مراجعات (باك إند + إشراف) · wishlists بتنبيهات | يربطان بالأتمتة (0026) |
+
+### المرحلة 4 — ERP متقدم (0030–0032)
+- **جرد دوري** (cycle counts) يرحّل فروقاته بالدفتر · **landed cost** بمتوسط تكلفة متحرك → COGS حقيقي بالمحاسبة · **سياسات min/max → PO تلقائي** (runner موجود) · **مخزون سيارات الفنيين** (location kind=van) · طباعة ليبل Code-128 · **محرّك سيريال→ضمان** (warranties + تفعيل عند البيع).
+
+### المرحلة 5 — محاسبة متقدمة + تسويات (0033–0034)
+- بقية مصفوفة الترحيل (15 قاعدة: COGS عند البيع، إيراد مؤجل، بطاقات هدايا) · **تسوية كي-نت** (مطابقة settlement) · **تسوية تحصيلات المندوبين COD** · قيود يدوية بواجهة (isBalanced جاهزة).
+
+### المرحلة 6 — وكلاء الذكاء الاصطناعي (0035–0036)
+- `runAgentTurn` (tool-use على بنية anthropic الموجودة) + جدول `agent_actions` + **3 مستويات guardrails** + موافقات بشرية `/admin/approvals`:
+  1. **وكيل مبيعات واتساب** (نية→بحث كتالوج→رابط سلة)
+  2. **Ops Copilot منفّذ** (يسوّي PO، يوزّع مهام — بأدواتنا الـRPC)
+  3. **وكيل رؤى** (كشف شذوذ يومي على الدفتر/الطلبات — اقتراح فقط)
+  4. **فرز تذاكر تلقائي** (مسودات ردود)
+- + golden-set evals بالـCI وkill switches.
+
+### مسار Go-live (موازٍ — يحتاج قراراتك/مفاتيحك)
+- [ ] ترقية Vercel Pro (حد النشر) · دومين `newtechq8.com` + Cloudflare
+- [ ] مفاتيح دفع MyFatoorah إنتاجية + توقيع webhook فعلي
+- [ ] قوالب WhatsApp معتمدة + أسرار الـfunctions (Shopify token، Anthropic key، Gmail relay)
+- [ ] بناء الموبايل EAS + المتاجر · مزامنة الكتالوج الكاملة (زر المزامنة جاهز)
+
+---
+
+## قواعد التنفيذ (لكل بند)
+migration (ملف + تطبيق حي) → منطق صافٍ+اختبارات → seam → actions → UI → **البوابات الأربع** → Draft PR → CI أخضر → Squash → نشر تلقائي. التفاصيل: السكيل + `DEVELOPMENT.md`.

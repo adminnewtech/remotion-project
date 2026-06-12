@@ -1,6 +1,6 @@
 # Elite v1 — Live Status
 
-_Last updated: 2026-06-12_
+_Last updated: 2026-06-12 (PM — phases 1+2 live)_
 
 This page tracks what is **actually live** right now (versus the plan in
 `ROADMAP.md`). It is the quick "is it up, and where" reference.
@@ -12,7 +12,9 @@ This page tracks what is **actually live** right now (versus the plan in
 | Web storefront + admin | 🟢 Live on Vercel |
 | Admin dashboard (OSALPHA Gold) | 🟢 Every nav item live: overview, orders (+status→notify), catalog (+Shopify sync), **cashier/POS**, **workshop**, dispatch (+**live driver map**), **customers**, support, marketing, finance, staff, analytics, CEO — no "coming soon" left |
 | Native-first (drop Zoho/Shopify) | 🟢 Finance + Marketing run on our own tables (no Zoho Books / Meta-only / Shopify reads); dispatch + staff fully native |
-| Quality gates (typecheck + lint + build) | 🟢 Green across all 8 packages in CI |
+| Quality gates (typecheck+lint+**test 55**+build) | 🟢 CI-enforced · +16 admin e2e |
+| **Accounting (double-entry, auto-posting)** | 🟢 Live — migration 0025, P&L on /admin/finance |
+| **CRM automation engine + runner** | 🟢 Live — migration 0026, /admin/automation |
 | Supabase project | 🟢 Provisioned (schema + RLS + seed) |
 | Catalog | 🟢 Seeded from `newtechq8.com` (24 products) |
 | Auth (phone OTP + email/password) | 🟢 Live |
@@ -37,8 +39,7 @@ This page tracks what is **actually live** right now (versus the plan in
 | Publishable (anon) key | public-safe, RLS-protected (see `DEPLOYMENT.md`) |
 | Service role key | secret — Vercel/edge env only |
 
-**Applied:** migrations `0001`–`0008` (schema, RLS, atomic stock RPCs, security
-hardening).
+**Applied:** migrations `0001`–`0026` (commerce, logistics, omnichannel, AI layer, finance/marketing, settings/zones, order audit trail, inventory ledger+purchasing+serials, security hardenings, returns/RMA, channels+loyalty, CRM notes, appointments, double-entry accounting, automation engine).
 
 ## Catalog (seeded)
 
