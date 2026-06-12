@@ -9,8 +9,8 @@ export default async function AdminSupportPage({ params }: { params: Promise<{ l
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">{t('nav.support', locale)}</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-2xl font-bold text-osa-ink">{t('nav.support', locale)}</h1>
+        <p className="mt-1 text-sm text-osa-muted">
           {locale === 'ar'
             ? 'صندوق وارد موحّد — كل المحادثات (التطبيق، واتساب، إنستغرام، البريد) في مكان واحد.'
             : 'Unified inbox — every conversation (in-app, WhatsApp, Instagram, email) in one place.'}

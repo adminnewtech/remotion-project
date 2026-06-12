@@ -84,13 +84,13 @@ function renderInline(text: string): JSX.Element[] {
       );
     } else if (tok.startsWith('`')) {
       tokens.push(
-        <code key={key++} className="rounded bg-neutral-100 px-1 py-0.5 font-mono text-xs">
+        <code key={key++} className="num rounded bg-osa-surface-2 px-1 py-0.5 text-xs text-osa-ink">
           {tok.slice(1, -1)}
         </code>,
       );
     } else {
       tokens.push(
-        <em key={key++} className="text-muted">
+        <em key={key++} className="text-osa-muted">
           {tok.slice(1, -1)}
         </em>,
       );

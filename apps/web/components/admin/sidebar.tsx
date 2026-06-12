@@ -74,7 +74,8 @@ const GROUPS: NavGroup[] = [
     items: [
       { key: 'accounting', href: '/finance', labelAr: 'المحاسبة', labelEn: 'Accounting', icon: 'accounting', roles: ['admin'] },
       { key: 'staff', href: '/staff', labelAr: 'الموظفون', labelEn: 'Staff', icon: 'staff', roles: ['admin'] },
-      { key: 'reports', href: '/ceo', labelAr: 'التقارير', labelEn: 'Reports', icon: 'reports', roles: ['admin'] },
+      { key: 'analytics', href: '/analytics', labelAr: 'التحليلات', labelEn: 'Analytics', icon: 'reports', roles: ['admin', 'employee'] },
+      { key: 'reports', href: '/ceo', labelAr: 'لوحة الرئيس', labelEn: 'Executive', icon: 'reports', roles: ['admin'] },
     ],
   },
 ];

@@ -77,16 +77,16 @@ export function CopilotWidget() {
     : ["Today's sales?", 'What is low on stock?', 'How many late tasks?'];
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-border bg-surface shadow-sm">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-3">
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-sm font-black text-white">
+    <div className="flex h-full flex-col rounded-osa border border-osa-border bg-osa-surface shadow-osa">
+      <div className="flex items-center gap-2 border-b border-osa-border px-5 py-3">
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-osa-sm bg-gradient-to-br from-osa-brand-strong to-osa-brand text-[13px] font-black text-white">
           AI
         </span>
         <div>
-          <p className="text-sm font-bold leading-none">
+          <p className="text-[13.5px] font-bold leading-none text-osa-ink">
             {ar ? 'مساعد العمليات' : 'Ops Copilot'}
           </p>
-          <p className="text-[11px] text-muted">
+          <p className="text-[11px] text-osa-muted">
             {ar ? 'يسأل عن بياناتك المباشرة' : 'Ask about your live data'}
           </p>
         </div>
@@ -95,7 +95,7 @@ export function CopilotWidget() {
       <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3" style={{ maxHeight: 360 }}>
         {turns.length === 0 && (
           <div className="space-y-2 py-6 text-center">
-            <p className="text-sm text-muted">
+            <p className="text-[13px] text-osa-muted">
               {ar ? 'اسأل المساعد عن حالة عملك اليوم.' : 'Ask the copilot about your business today.'}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
@@ -103,7 +103,7 @@ export function CopilotWidget() {
                 <button
                   key={s}
                   onClick={() => setInput(s)}
-                  className="rounded-full border border-border px-3 py-1 text-xs text-muted hover:border-primary hover:text-primary"
+                  className="rounded-full border border-osa-border px-3 py-1 text-[11.5px] text-osa-muted transition-colors hover:border-osa-brand-border hover:text-osa-brand"
                 >
                   {s}
                 </button>
@@ -115,14 +115,14 @@ export function CopilotWidget() {
         {turns.map((turn, i) => (
           <div key={i} className={turn.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
             <div
-              className={`max-w-[85%] rounded-2xl px-3 py-2 ${
+              className={`max-w-[85%] rounded-osa px-3 py-2 ${
                 turn.role === 'user'
-                  ? 'bg-primary text-white'
-                  : 'border border-border bg-neutral-50 text-foreground'
+                  ? 'bg-osa-brand text-white'
+                  : 'border border-osa-border bg-osa-surface-2 text-osa-ink'
               }`}
             >
               {turn.role === 'user' ? (
-                <p className="whitespace-pre-wrap text-sm">{turn.content}</p>
+                <p className="whitespace-pre-wrap text-[13px]">{turn.content}</p>
               ) : (
                 <SimpleMarkdown text={turn.content} />
               )}
@@ -132,16 +132,16 @@ export function CopilotWidget() {
 
         {busy && (
           <div className="flex justify-start">
-            <div className="rounded-2xl border border-border bg-neutral-50 px-3 py-2 text-sm text-muted">
+            <div className="rounded-osa border border-osa-border bg-osa-surface-2 px-3 py-2 text-[13px] text-osa-muted">
               {ar ? '...يكتب' : 'thinking…'}
             </div>
           </div>
         )}
       </div>
 
-      {error && <p className="px-4 text-xs text-danger">{error}</p>}
+      {error && <p className="px-4 text-[11.5px] text-osa-rose">{error}</p>}
 
-      <div className="flex items-center gap-2 border-t border-border p-3">
+      <div className="flex items-center gap-2 border-t border-osa-border p-3">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -152,7 +152,7 @@ export function CopilotWidget() {
             }
           }}
           placeholder={ar ? 'اكتب سؤالك…' : 'Type your question…'}
-          className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          className="flex-1 rounded-osa-sm border border-osa-border bg-osa-surface px-3 py-2 text-[13px] text-osa-ink outline-none transition-colors placeholder:text-osa-faint focus:border-osa-brand-border"
         />
         <Button size="sm" onClick={() => void send()} disabled={busy || !input.trim()}>
           {ar ? 'إرسال' : 'Send'}

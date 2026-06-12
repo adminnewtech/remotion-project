@@ -1,12 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import type { Ticket, TicketKind } from '@elite/types';
-import { Button, Input, Select, StatusBadge, EmptyState, Modal } from '@elite/ui/web';
+import type { Ticket, TicketKind, TicketStatus } from '@elite/types';
+import { Button, Input, Select, EmptyState, Modal, StatusPill } from '@elite/ui/web';
+import type { StatusTone } from '@elite/ui/web';
 import { useT } from '@/lib/use-t';
 import { fmtDate } from '@/lib/format';
 
 const KINDS: TicketKind[] = ['general', 'warranty', 'complaint', 'return'];
+
+/** Map a ticket status to an OSALPHA StatusPill tone. */
+function statusTone(s: TicketStatus): StatusTone {
+  switch (s) {
+    case 'open':
+      return 'new';
+    case 'pending':
+      return 'prep';
+    case 'resolved':
+      return 'done';
+    case 'closed':
+      return 'neutral';
+    default:
+      return 'neutral';
+  }
+}
 
 /** Customer support: ticket list + new-request modal (Zoho Desk backed). */
 export function SupportPanel({ tickets }: { tickets: Ticket[] }) {
@@ -19,7 +36,7 @@ export function SupportPanel({ tickets }: { tickets: Ticket[] }) {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold">{t('support.myTickets')}</h2>
+        <h2 className="text-lg font-bold text-osa-ink">{t('support.myTickets')}</h2>
         <Button onClick={() => setOpen(true)}>{t('support.newTicket')}</Button>
       </div>
 
@@ -28,15 +45,18 @@ export function SupportPanel({ tickets }: { tickets: Ticket[] }) {
       ) : (
         <div className="space-y-3">
           {tickets.map((tk) => (
-            <div key={tk.id} className="flex items-center justify-between rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <div
+              key={tk.id}
+              className="flex items-center justify-between gap-2 rounded-osa border border-osa-border bg-osa-surface p-4 shadow-osa"
+            >
               <div>
-                <p className="text-sm font-semibold">{tk.subject}</p>
-                <p className="text-xs text-muted">
+                <p className="text-[13.5px] font-semibold text-osa-ink">{tk.subject}</p>
+                <p className="text-[11.5px] text-osa-faint">
                   {t(`support.kind.${tk.kind}`)} · {fmtDate(tk.created_at, locale)}
                   {tk.zoho_desk_id ? ` · ${t('support.ticketNumber', { number: tk.zoho_desk_id })}` : ''}
                 </p>
               </div>
-              <StatusBadge status={tk.status} label={t(`support.status.${tk.status}`)} />
+              <StatusPill tone={statusTone(tk.status)}>{t(`support.status.${tk.status}`)}</StatusPill>
             </div>
           ))}
         </div>
@@ -53,13 +73,13 @@ export function SupportPanel({ tickets }: { tickets: Ticket[] }) {
           </Select>
           <Input label={t('support.subject')} value={subject} onChange={(e) => setSubject(e.target.value)} />
           <div>
-            <label className="mb-1 block text-sm font-medium">{t('support.message')}</label>
+            <label className="mb-1 block text-sm font-medium text-osa-ink">{t('support.message')}</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               placeholder={t('support.typeMessage')}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              className="w-full rounded-osa-sm border border-osa-border bg-osa-surface px-3 py-2 text-[13px] text-osa-ink outline-none transition-colors placeholder:text-osa-faint focus:border-osa-brand-border"
             />
           </div>
           <div className="flex justify-end gap-2">

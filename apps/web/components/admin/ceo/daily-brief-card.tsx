@@ -38,17 +38,17 @@ export function DailyBriefCard({ initial }: { initial: AiReport | null }) {
   const aiBadge = report?.data && (report.data as { ai?: boolean }).ai;
 
   return (
-    <div className="rounded-2xl border border-border bg-gradient-to-br from-primary-50 to-accent-50 p-5 shadow-sm">
+    <div className="rounded-osa border border-osa-brand-border bg-osa-brand-dim p-5 shadow-osa">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-sm font-black text-white">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-osa-sm bg-gradient-to-br from-osa-brand-strong to-osa-brand text-[13px] font-black text-white">
             AI
           </span>
           <div>
-            <h2 className="text-base font-bold leading-none">
+            <h2 className="text-[15px] font-bold leading-none text-osa-ink">
               {ar ? 'الموجز اليومي الذكي' : 'AI Daily Brief'}
             </h2>
-            <p className="text-[11px] text-muted">
+            <p className="text-[11px] text-osa-muted">
               {report
                 ? new Date(report.created_at).toLocaleString(ar ? 'ar-KW' : 'en-GB')
                 : ar
@@ -63,13 +63,13 @@ export function DailyBriefCard({ initial }: { initial: AiReport | null }) {
         </Button>
       </div>
 
-      {error && <p className="mb-2 text-xs text-danger">{error}</p>}
+      {error && <p className="mb-2 text-[11.5px] text-osa-rose">{error}</p>}
 
-      <div className="max-h-72 overflow-y-auto rounded-xl bg-surface/70 p-4">
+      <div className="max-h-72 overflow-y-auto rounded-osa-sm bg-osa-surface/80 p-4 text-osa-ink">
         {report ? (
           <SimpleMarkdown text={report.body_md} />
         ) : (
-          <p className="py-6 text-center text-sm text-muted">
+          <p className="py-6 text-center text-[13px] text-osa-muted">
             {ar
               ? 'اضغط «توليد الآن» لإنشاء أول موجز تنفيذي.'
               : 'Press “Generate now” to create the first executive brief.'}

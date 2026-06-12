@@ -9,7 +9,8 @@ import type {
   TicketStatus,
 } from '@elite/types';
 import { support } from '@elite/core';
-import { StatusBadge, Badge, Button } from '@elite/ui/web';
+import { StatusPill, Button } from '@elite/ui/web';
+import type { StatusTone } from '@elite/ui/web';
 import { useT } from '@/lib/use-t';
 import { fmtDate } from '@/lib/format';
 import { getBrowserClient } from '@/lib/supabase/client';
@@ -37,19 +38,35 @@ function channelLabel(c: TicketChannel, locale: string): string {
   return locale === 'ar' ? ar[c] : en[c];
 }
 
-/** Tailwind classes for the channel pill. */
+/** OSALPHA token classes for the channel pill. */
 function channelPill(c: TicketChannel): string {
   switch (c) {
     case 'whatsapp':
-      return 'bg-green-100 text-green-700 ring-1 ring-green-600/20';
+      return 'bg-osa-green-dim text-osa-green';
     case 'instagram':
-      return 'bg-pink-100 text-pink-700 ring-1 ring-pink-600/20';
+      return 'bg-osa-rose-dim text-osa-rose';
     case 'email':
-      return 'bg-blue-100 text-blue-700 ring-1 ring-blue-600/20';
+      return 'bg-osa-blue-dim text-osa-blue';
     case 'chatwoot':
-      return 'bg-violet-100 text-violet-700 ring-1 ring-violet-600/20';
+      return 'bg-osa-brand-dim text-osa-brand';
     default:
-      return 'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-500/20';
+      return 'bg-osa-surface-2 text-osa-muted';
+  }
+}
+
+/** Map a ticket status to an OSALPHA StatusPill tone. */
+function statusTone(s: TicketStatus): StatusTone {
+  switch (s) {
+    case 'open':
+      return 'new';
+    case 'pending':
+      return 'prep';
+    case 'resolved':
+      return 'done';
+    case 'closed':
+      return 'neutral';
+    default:
+      return 'neutral';
   }
 }
 
@@ -236,7 +253,7 @@ export function AdminSupportQueue({ tickets, initialMessages }: Props) {
 
         <div className="space-y-2">
           {filtered.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted">
+            <p className="rounded-osa border border-dashed border-osa-border-strong p-6 text-center text-[13px] text-osa-muted">
               {t('support.empty')}
             </p>
           ) : (
@@ -244,15 +261,15 @@ export function AdminSupportQueue({ tickets, initialMessages }: Props) {
               <button
                 key={tk.id}
                 onClick={() => setActive(tk)}
-                className={`w-full rounded-2xl border bg-surface p-4 text-start shadow-sm transition ${active?.id === tk.id ? 'border-primary ring-1 ring-primary/30' : 'border-border hover:border-primary/40'}`}
+                className={`w-full rounded-osa border bg-osa-surface p-4 text-start shadow-osa transition-colors ${active?.id === tk.id ? 'border-osa-brand-border ring-1 ring-osa-brand-border' : 'border-osa-border hover:border-osa-brand-border'}`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-semibold">{tk.subject}</span>
-                  <StatusBadge status={tk.status} label={t(`support.status.${tk.status}`)} />
+                  <span className="truncate text-[13.5px] font-semibold text-osa-ink">{tk.subject}</span>
+                  <StatusPill tone={statusTone(tk.status)}>{t(`support.status.${tk.status}`)}</StatusPill>
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <ChannelBadge channel={tk.channel} locale={locale} />
-                  <span className="text-[11px] text-muted">{fmtDate(tk.created_at, locale)}</span>
+                  <span className="num text-[11px] text-osa-faint">{fmtDate(tk.created_at, locale)}</span>
                 </div>
               </button>
             ))
@@ -263,14 +280,14 @@ export function AdminSupportQueue({ tickets, initialMessages }: Props) {
       {/* ── Conversation ─────────────────────────────────────────────────── */}
       <div className="lg:col-span-5">
         {active ? (
-          <div className="flex h-[34rem] flex-col rounded-2xl border border-border bg-surface shadow-sm">
-            <div className="flex items-center justify-between gap-2 border-b border-border p-4">
+          <div className="flex h-[34rem] flex-col rounded-osa border border-osa-border bg-osa-surface shadow-osa">
+            <div className="flex items-center justify-between gap-2 border-b border-osa-border p-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="truncate font-bold">{active.subject}</p>
+                  <p className="truncate font-bold text-osa-ink">{active.subject}</p>
                   <ChannelBadge channel={active.channel} locale={locale} />
                 </div>
-                <p className="mt-0.5 text-xs text-muted">
+                <p className="num mt-0.5 text-[11.5px] text-osa-faint">
                   {active.zoho_desk_id
                     ? t('support.ticketNumber', { number: active.zoho_desk_id })
                     : active.external_id
@@ -279,11 +296,11 @@ export function AdminSupportQueue({ tickets, initialMessages }: Props) {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {active.kind === 'warranty' && <Badge variant="info">{t('support.warrantyClaim')}</Badge>}
+                {active.kind === 'warranty' && <StatusPill tone="brand">{t('support.warrantyClaim')}</StatusPill>}
                 <select
                   value={status ?? active.status}
                   onChange={(e) => handleStatus(e.target.value as TicketStatus)}
-                  className="rounded-xl border border-border bg-background px-2 py-1 text-xs outline-none focus:border-primary"
+                  className="rounded-osa-sm border border-osa-border bg-osa-surface px-2 py-1 text-[12px] text-osa-ink outline-none transition-colors focus:border-osa-brand-border"
                 >
                   {STATUSES.map((s) => (
                     <option key={s} value={s}>
@@ -296,13 +313,13 @@ export function AdminSupportQueue({ tickets, initialMessages }: Props) {
 
             <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
               {activeMessages.length === 0 ? (
-                <p className="text-center text-sm text-muted">{t('support.empty')}</p>
+                <p className="text-center text-[13px] text-osa-muted">{t('support.empty')}</p>
               ) : (
                 activeMessages.map((m) => <Bubble key={m.id} message={m} />)
               )}
             </div>
 
-            <div className="flex gap-2 border-t border-border p-3">
+            <div className="flex gap-2 border-t border-osa-border p-3">
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -313,7 +330,7 @@ export function AdminSupportQueue({ tickets, initialMessages }: Props) {
                   }
                 }}
                 placeholder={t('support.typeMessage')}
-                className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                className="flex-1 rounded-osa-sm border border-osa-border bg-osa-surface px-3 py-2 text-[13px] text-osa-ink outline-none transition-colors placeholder:text-osa-faint focus:border-osa-brand-border"
               />
               <Button onClick={() => void handleSend()} disabled={sending || !draft.trim()}>
                 {t('support.send')}
@@ -321,7 +338,7 @@ export function AdminSupportQueue({ tickets, initialMessages }: Props) {
             </div>
           </div>
         ) : (
-          <p className="text-muted">{t('support.empty')}</p>
+          <p className="text-osa-muted">{t('support.empty')}</p>
         )}
       </div>
 
@@ -342,8 +359,8 @@ function Bubble({ message }: { message: TicketMessage }) {
     <div
       className={
         outbound
-          ? 'ms-auto max-w-[80%] rounded-2xl rounded-se-sm bg-primary p-3 text-sm text-white'
-          : 'me-auto max-w-[80%] rounded-2xl rounded-ss-sm bg-neutral-100 p-3 text-sm text-neutral-900'
+          ? 'ms-auto max-w-[80%] rounded-osa rounded-se-sm bg-osa-brand p-3 text-[13px] text-white'
+          : 'me-auto max-w-[80%] rounded-osa rounded-ss-sm bg-osa-surface-2 p-3 text-[13px] text-osa-ink'
       }
     >
       <p className="whitespace-pre-wrap break-words">{message.body}</p>
@@ -362,21 +379,21 @@ function CustomerCard({
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-      <h3 className="text-sm font-bold">{locale === 'ar' ? 'بطاقة العميل' : 'Customer'}</h3>
-      <dl className="space-y-2 text-sm">
+    <div className="space-y-3 rounded-osa border border-osa-border bg-osa-surface p-4 shadow-osa">
+      <h3 className="text-[14px] font-bold text-osa-ink">{locale === 'ar' ? 'بطاقة العميل' : 'Customer'}</h3>
+      <dl className="space-y-2 text-[13px]">
         <Row label={locale === 'ar' ? 'القناة' : 'Channel'}>
           <ChannelBadge channel={ticket.channel} locale={locale} />
         </Row>
         {ticket.customer_phone && (
           <Row label={locale === 'ar' ? 'الهاتف' : 'Phone'}>
-            <a className="text-primary" href={`https://wa.me/${ticket.customer_phone}`}>
+            <a className="num font-semibold text-osa-brand" href={`https://wa.me/${ticket.customer_phone}`}>
               {ticket.customer_phone}
             </a>
           </Row>
         )}
         <Row label={locale === 'ar' ? 'العميل' : 'Customer'}>
-          <span className="text-muted">
+          <span className="text-osa-muted">
             {ticket.user_id
               ? ticket.user_id.slice(0, 8)
               : locale === 'ar'
@@ -386,19 +403,19 @@ function CustomerCard({
         </Row>
         <Row label={locale === 'ar' ? 'الطلب' : 'Order'}>
           {ticket.order_id ? (
-            <a className="text-primary" href={`/${locale}/admin/orders/${ticket.order_id}`}>
+            <a className="num font-semibold text-osa-brand" href={`/${locale}/admin/orders/${ticket.order_id}`}>
               {ticket.order_id.slice(0, 8)}
             </a>
           ) : (
-            <span className="text-muted">{locale === 'ar' ? 'لا يوجد' : 'None'}</span>
+            <span className="text-osa-muted">{locale === 'ar' ? 'لا يوجد' : 'None'}</span>
           )}
         </Row>
         <Row label={locale === 'ar' ? 'النوع' : 'Kind'}>
-          <span>{t(`support.kind.${ticket.kind}`)}</span>
+          <span className="text-osa-ink">{t(`support.kind.${ticket.kind}`)}</span>
         </Row>
         {ticket.kind === 'warranty' && (
           <Row label={locale === 'ar' ? 'الضمان' : 'Warranty'}>
-            <Badge variant="info">{t('support.warrantyClaim')}</Badge>
+            <StatusPill tone="brand">{t('support.warrantyClaim')}</StatusPill>
           </Row>
         )}
       </dl>
@@ -409,7 +426,7 @@ function CustomerCard({
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <dt className="text-xs text-muted">{label}</dt>
+      <dt className="text-[11.5px] text-osa-muted">{label}</dt>
       <dd className="text-end">{children}</dd>
     </div>
   );
@@ -427,12 +444,12 @@ function FilterSelect({
   options: [string, string][];
 }) {
   return (
-    <label className="flex flex-col gap-1 text-xs">
-      <span className="text-muted">{label}</span>
+    <label className="flex flex-col gap-1 text-[11.5px]">
+      <span className="text-osa-muted">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-xl border border-border bg-background px-2 py-1.5 text-sm outline-none focus:border-primary"
+        className="rounded-osa-sm border border-osa-border bg-osa-surface px-2 py-1.5 text-[13px] text-osa-ink outline-none transition-colors focus:border-osa-brand-border"
       >
         {options.map(([v, l]) => (
           <option key={v} value={v}>
