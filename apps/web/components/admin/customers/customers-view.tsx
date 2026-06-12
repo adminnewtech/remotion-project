@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useT } from '@/lib/use-t';
 import { PageHeader, KpiCard } from '@/components/admin/ui';
 import type { CustomersData } from '@/lib/admin-customers';
@@ -56,15 +57,15 @@ export function CustomersView({ data }: { data: CustomersData }) {
             {rows.map((r) => (
               <tr key={r.id} className="transition-colors hover:bg-osa-surface-2">
                 <td className="border-b border-osa-border px-[18px] py-[11px]">
-                  <div className="flex items-center gap-2.5">
+                  <Link href={`/${locale}/admin/customers/${r.id}`} className="flex items-center gap-2.5">
                     <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-osa-brand-dim text-[13px] font-semibold text-osa-brand">
                       {r.name.slice(0, 1)}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-semibold text-osa-ink">{r.name}</p>
+                      <p className="text-[13px] font-semibold text-osa-ink hover:text-osa-brand">{r.name}</p>
                       <p className="num text-[11.5px] text-osa-faint">{r.phone ?? r.email ?? '—'}</p>
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="border-b border-osa-border px-[18px] py-[11px]"><span className="num text-osa-muted">{r.orders}</span></td>
                 <td className="border-b border-osa-border px-[18px] py-[11px]"><span className="num font-semibold text-osa-ink">{fmt(r.spent)} KWD</span></td>
