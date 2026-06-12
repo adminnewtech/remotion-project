@@ -27,14 +27,14 @@ serve(async (req: Request): Promise<Response> => {
   try { body = await req.json(); } catch { return jsonError("Invalid JSON", 400); }
   if (!body.phone || !body.message) return jsonError("phone and message required", 400);
 
-  // Check kill switch
+  // Check kill switch (reads app_settings.ai.sales_agent — false = disabled)
   const admin = getAdminClient();
   const { data: settings } = await admin
     .from("app_settings")
-    .select("notifications")
+    .select("ai")
     .single();
-  const aiSettings = (settings?.notifications as Record<string, unknown>)?.ai as Record<string, unknown> ?? {};
-  if (aiSettings.sales_agent === false) {
+  const aiKill = (settings?.ai as Record<string, boolean> | null) ?? {};
+  if (aiKill.sales_agent === false) {
     return json({ ok: false, reason: "agent disabled" });
   }
 
