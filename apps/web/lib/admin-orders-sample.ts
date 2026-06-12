@@ -59,6 +59,10 @@ export interface AdminOrderDetail {
   placedAt: string;
   deliverySlot: string | null;
   notes: string | null;
+  /** Ops tags (migration 0018). Optional for sample rows. */
+  tags?: string[];
+  /** Latest internal ops note (migration 0018). */
+  internalNote?: string | null;
   timeline: { key: OrderStatus; label: string; at: string | null; done: boolean }[];
 }
 

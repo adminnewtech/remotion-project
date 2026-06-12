@@ -10,7 +10,7 @@ import { useState, useTransition, type ReactNode } from 'react';
 import { StatusPill, PayChip } from '@elite/ui/web';
 import type { OrderStatus } from '@elite/types';
 import type { AdminOrderDetail } from '@/lib/admin-orders';
-import { setOrderStatus } from '@/app/[locale]/admin/orders/actions';
+import { setOrderStatus, setOrderTags, addOrderNote } from '@/app/[locale]/admin/orders/actions';
 import { num3, shortDateTime } from './format';
 import { STATUS_LABEL, STATUS_TONE, CHANNEL_LABEL, STATUS_FLOW } from './status';
 import { useOsaToast } from './toast';
@@ -169,6 +169,9 @@ export function OrderDetail({ detail }: { detail: AdminOrderDetail }) {
         </div>
       </section>
 
+      {/* Tags + internal note (real audit trail — migration 0018) */}
+      <TagsAndNote detail={detail} />
+
       {/* Timeline */}
       <section className="rounded-osa border border-osa-border bg-osa-surface p-[14px_16px]">
         <div className="mb-3 text-[12px] font-semibold text-osa-muted">المسار الزمني</div>
@@ -200,5 +203,82 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
       <span className="text-osa-muted">{label}</span>
       {children}
     </div>
+  );
+}
+
+/** Ops tags chips + internal note editor — writes to the real audit trail. */
+function TagsAndNote({ detail }: { detail: AdminOrderDetail }) {
+  const { toast } = useOsaToast();
+  const [tags, setTags] = useState<string[]>(detail.tags ?? []);
+  const [tagInput, setTagInput] = useState('');
+  const [note, setNote] = useState(detail.internalNote ?? '');
+  const [savedNote, setSavedNote] = useState(detail.internalNote ?? '');
+  const [pending, startTransition] = useTransition();
+
+  function pushTags(next: string[]) {
+    setTags(next);
+    startTransition(async () => {
+      const res = await setOrderTags(detail.id, next);
+      if (!res.ok) toast('تعذّر حفظ الوسوم', 'error');
+    });
+  }
+  function addTag() {
+    const v = tagInput.trim();
+    if (!v || tags.includes(v)) return setTagInput('');
+    setTagInput('');
+    pushTags([...tags, v]);
+  }
+  function saveNote() {
+    const v = note.trim();
+    if (!v || v === savedNote) return;
+    startTransition(async () => {
+      const res = await addOrderNote(detail.id, v);
+      if (res.ok) {
+        setSavedNote(v);
+        toast('أُضيفت الملاحظة لسجل الطلب', 'success');
+      } else {
+        toast('تعذّر حفظ الملاحظة', 'error');
+      }
+    });
+  }
+
+  return (
+    <section className="rounded-osa border border-osa-border bg-osa-surface p-[14px_16px]">
+      <div className="mb-2.5 text-[12px] font-semibold text-osa-muted">الوسوم والملاحظات</div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        {tags.map((t) => (
+          <span key={t} className="inline-flex items-center gap-1 rounded-full bg-osa-brand-dim px-2.5 py-[3px] text-[11.5px] font-semibold text-osa-brand">
+            {t}
+            <button type="button" aria-label={`إزالة ${t}`} onClick={() => pushTags(tags.filter((x) => x !== t))} className="text-osa-brand/70 hover:text-osa-rose">×</button>
+          </span>
+        ))}
+        <input
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+          placeholder="+ وسم"
+          className="w-24 rounded-full border border-osa-border bg-osa-surface-2 px-2.5 py-[3px] text-[11.5px] text-osa-ink outline-none focus:border-osa-brand-border"
+        />
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveNote(); } }}
+          placeholder="ملاحظة داخلية — تُسجّل في سجل الطلب"
+          className="flex-1 rounded-osa-sm border border-osa-border bg-osa-surface-2 px-3 py-2 text-[12.5px] text-osa-ink outline-none focus:border-osa-brand-border"
+        />
+        <button
+          type="button"
+          onClick={saveNote}
+          disabled={pending || !note.trim() || note.trim() === savedNote}
+          className="rounded-osa-sm border border-osa-border-strong px-3 py-1.5 text-[12.5px] font-semibold text-osa-muted transition-colors hover:bg-osa-surface-2 disabled:opacity-50"
+        >
+          حفظ
+        </button>
+      </div>
+    </section>
   );
 }

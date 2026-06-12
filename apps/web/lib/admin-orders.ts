@@ -200,6 +200,8 @@ function toDetail(o: Order, items: OrderItem[], events: OrderEventRow[] = []): A
     placedAt: o.placed_at ?? o.created_at,
     deliverySlot: o.delivery_slot,
     notes: o.notes,
+    tags: ((o as unknown as { tags?: string[] }).tags ?? []),
+    internalNote: (o as unknown as { internal_note?: string | null }).internal_note ?? null,
     timeline: events.length
       ? eventsToTimeline(events, o.status)
       : deriveTimeline(o.status, o.placed_at ?? o.created_at),
