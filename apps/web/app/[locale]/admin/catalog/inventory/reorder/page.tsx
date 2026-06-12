@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { coerceLocale } from '@/lib/i18n';
 import { fetchReorderPolicies } from '@/lib/admin-erp';
 import { generateReorderPos } from './actions';
@@ -65,12 +66,12 @@ export default async function ReorderPage({
             <span className="font-semibold">{data.draftPoCount}</span> مسودة أوامر شراء تلقائية
             جاهزة للمراجعة
           </p>
-          <a
+          <Link
             href="/ar/admin/purchasing"
             className="text-sm font-medium text-blue-700 underline underline-offset-2"
           >
             عرض المشتريات
-          </a>
+          </Link>
         </div>
       )}
 

@@ -74,7 +74,7 @@ export function GiftCardsClient({ data }: { data: GiftCardsData }) {
   }
 
   return (
-    <RoleGuard allow={['admin', 'ops']}>
+    <RoleGuard allow={['admin', 'employee']}>
       <PageHeader
         title="بطاقات الهدايا — Gift Cards"
         subtitle="إصدار وإدارة بطاقات الهدايا بالدينار الكويتي"

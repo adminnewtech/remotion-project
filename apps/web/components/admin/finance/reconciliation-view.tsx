@@ -12,7 +12,7 @@
 import { useState, useRef, type ChangeEvent } from 'react';
 import type { ReconciliationData, KnetSettlementRow } from '@/lib/admin-accounting-ledger';
 import { num3 } from '@/components/admin/orders/format';
-import { uploadSettlement, matchSettlement, postSettlement } from '../reconciliation/actions';
+import { uploadSettlement, matchSettlement, postSettlement } from '@/app/[locale]/admin/finance/reconciliation/actions';
 
 const CARD = 'rounded-osa border border-osa-border bg-osa-surface p-[17px_19px] shadow-osa';
 
@@ -194,10 +194,10 @@ function UploadSection({ onDone }: { onDone: () => void }) {
             <button
               type="button"
               onClick={handleSave}
-              disabled={status === 'uploading'}
+              disabled={(status as string) === 'uploading'}
               className="rounded-full bg-osa-brand px-5 py-2 text-[13px] font-semibold text-white shadow-osa transition-transform active:scale-[.97] disabled:opacity-50"
             >
-              {status === 'uploading' ? '⏳ جارٍ الحفظ…' : 'حفظ وتطابق'}
+              {(status as string) === 'uploading' ? '⏳ جارٍ الحفظ…' : 'حفظ وتطابق'}
             </button>
             <button
               type="button"

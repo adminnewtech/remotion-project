@@ -11,7 +11,7 @@
 import { useState, type FormEvent } from 'react';
 import type { CodData, CodRemittanceRow } from '@/lib/admin-accounting-ledger';
 import { num3 } from '@/components/admin/orders/format';
-import { recordCodRemittance } from '../cod/actions';
+import { recordCodRemittance } from '@/app/[locale]/admin/finance/cod/actions';
 
 const CARD = 'rounded-osa border border-osa-border bg-osa-surface p-[17px_19px] shadow-osa';
 

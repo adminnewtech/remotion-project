@@ -142,7 +142,7 @@ export function ReviewsClient({ data }: { data: ReviewsData }) {
   });
 
   return (
-    <RoleGuard allow={['admin', 'ops']}>
+    <RoleGuard allow={['admin', 'employee']}>
       <PageHeader
         title="التقييمات — Reviews"
         subtitle="مراجعة وإدارة تقييمات العملاء"

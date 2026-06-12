@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useTransition } from 'react';
 import type { InboxData, ThreadRow } from '@/lib/admin-inbox';
 import { sendWhatsApp } from '@/app/[locale]/admin/inbox/actions';
 import { fmtDate } from '@/lib/format';
+import type { Locale } from '@elite/types';
 import { useT } from '@/lib/use-t';
 
 // ── Message bubble (outbound = ops sent, inbound = customer) ─────────────────
@@ -16,7 +17,7 @@ function Bubble({
   body: string;
   direction: 'in' | 'out';
   createdAt: string;
-  locale: string;
+  locale: Locale;
 }) {
   const outbound = direction === 'out';
   return (
@@ -45,7 +46,7 @@ function ThreadItem({
   thread: ThreadRow;
   active: boolean;
   onClick: () => void;
-  locale: string;
+  locale: Locale;
 }) {
   return (
     <button

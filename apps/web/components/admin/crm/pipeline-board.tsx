@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import type { PipelineData, StageData, DealRow } from '@/lib/admin-crm-pipeline';
 import { moveDeal, createDeal, addDealNote } from '@/app/[locale]/admin/crm/actions';
 import { fmtKWD, fmtDate } from '@/lib/format';
+import type { Locale } from '@elite/types';
 import { useT } from '@/lib/use-t';
 
 // ── Source badge ──────────────────────────────────────────────────────────────
@@ -77,7 +78,7 @@ function StageColumn({
   stage: StageData;
   pipelineId: string | null;
   onDealClick: (deal: DealRow) => void;
-  locale: string;
+  locale: Locale;
 }) {
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState('');

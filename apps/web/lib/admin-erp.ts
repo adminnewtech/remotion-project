@@ -70,9 +70,8 @@ export async function fetchCycleCounts(): Promise<CycleCountsData> {
       postedAt: c.posted_at,
       itemCount: Array.isArray(c.cycle_count_items) ? c.cycle_count_items.length : 0,
       variance: Array.isArray(c.cycle_count_items)
-        ? c.cycle_count_items.filter(
-            (i: { expected: number; counted: number | null }) =>
-              i.counted !== null && i.counted !== i.expected
+        ? (c.cycle_count_items as { expected: number; counted: number | null }[]).filter(
+            (i) => i.counted !== null && i.counted !== i.expected
           ).length
         : 0,
     })),

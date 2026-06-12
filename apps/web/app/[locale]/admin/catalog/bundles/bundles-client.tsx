@@ -84,7 +84,7 @@ export function BundlesClient({ data }: { data: BundlesData }) {
   }
 
   return (
-    <RoleGuard allow={['admin', 'ops']}>
+    <RoleGuard allow={['admin', 'employee']}>
       <PageHeader
         title="الباقات — Product Bundles"
         subtitle="باقات المنتجات مع الخدمات (مثل مكيف + تركيب)"
@@ -296,7 +296,7 @@ function ToggleButton({ id, isActive }: { id: string; isActive: boolean }) {
       size="sm"
       variant={isActive ? 'outline' : 'secondary'}
       loading={pending}
-      onClick={() => startTransition(() => setBundleActive(id, !isActive))}
+      onClick={() => startTransition(async () => { await setBundleActive(id, !isActive); })}
     >
       {isActive ? 'إيقاف' : 'تفعيل'}
     </Button>

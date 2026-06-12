@@ -157,7 +157,7 @@ export function PickupClient({
   const readyCount = orders.filter((o) => o.status === 'ready_for_pickup').length;
 
   return (
-    <RoleGuard allow={['admin', 'ops']}>
+    <RoleGuard allow={['admin', 'employee']}>
       <PageHeader
         title="الاستلام من المحل — Pickup Orders"
         subtitle="طلبات الاستلام الشخصي — مدفوعة وجاهزة"
