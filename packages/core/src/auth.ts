@@ -22,6 +22,60 @@ export async function verifyOtp(
   return { session: data.session, user: data.user };
 }
 
+/**
+ * Sign in with an email + password.
+ *
+ * Alternative to phone OTP, primarily for staff/admin who authenticate with
+ * email. Returns the established session/user, or throws the Supabase error
+ * (callers map it to a friendly, localized message).
+ */
+export async function signInWithPassword(
+  client: EliteClient,
+  email: string,
+  password: string,
+): Promise<{ session: Session | null; user: User | null }> {
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return { session: data.session, user: data.user };
+}
+
+/**
+ * Create an account with email + password (future staff onboarding).
+ *
+ * `meta` is attached as `options.data` (stored in `auth.users.user_metadata`),
+ * useful for seeding e.g. `full_name` at sign-up time.
+ */
+export async function signUpWithPassword(
+  client: EliteClient,
+  email: string,
+  password: string,
+  meta?: Record<string, unknown>,
+): Promise<{ session: Session | null; user: User | null }> {
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    ...(meta ? { options: { data: meta } } : {}),
+  });
+  if (error) throw error;
+  return { session: data.session, user: data.user };
+}
+
+/**
+ * Send a password-reset email. `redirectTo` is the URL the recovery link
+ * returns to (e.g. an in-app reset page); omit to use the project default.
+ */
+export async function resetPasswordForEmail(
+  client: EliteClient,
+  email: string,
+  redirectTo?: string,
+): Promise<void> {
+  const { error } = await client.auth.resetPasswordForEmail(
+    email,
+    redirectTo ? { redirectTo } : undefined,
+  );
+  if (error) throw error;
+}
+
 /** Sign the current user out. */
 export async function signOut(client: EliteClient): Promise<void> {
   const { error } = await client.auth.signOut();
