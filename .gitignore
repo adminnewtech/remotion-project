@@ -21,3 +21,4 @@ out/
 # supabase
 supabase/.branches/
 supabase/.temp/
+.claude/settings.local.json
