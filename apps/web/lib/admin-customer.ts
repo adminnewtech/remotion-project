@@ -20,6 +20,15 @@ export interface TimelineEvent {
   status?: string;
 }
 
+export interface CustomerNote {
+  id: string;
+  kind: 'note' | 'task';
+  body: string;
+  due_at: string | null;
+  done: boolean;
+  created_at: string;
+}
+
 export interface OwnedDevice {
   serial: string;
   product: string;
@@ -41,6 +50,7 @@ export interface Customer360 {
   tier: 'champion' | 'loyal' | 'active' | 'at_risk' | 'new';
   openTickets: number;
   loyaltyPoints: number;
+  notes: CustomerNote[];
   devices: OwnedDevice[];
   timeline: TimelineEvent[];
 }
@@ -64,9 +74,10 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
         const orderRows = (orders ?? []) as OrderRow[];
         const orderIds = orderRows.map((o) => o.id);
 
-        const [{ data: payments }, { data: tickets }, { data: serials }] = await Promise.all([
+        const [{ data: payments }, { data: tickets }, { data: notes }, { data: serials }] = await Promise.all([
           orderIds.length ? client.from('payments').select('order_id, amount, method, status, created_at').in('order_id', orderIds) : Promise.resolve({ data: [] as PaymentRow[] }),
           client.from('tickets').select('id, subject, status, kind, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(50),
+          client.from('customer_notes').select('id, kind, body, due_at, done, created_at').eq('customer_id', id).order('created_at', { ascending: false }).limit(30),
           orderIds.length
             ? client.from('product_serials').select('serial, status, order_id, variant_id, created_at, product_variants(products(name_ar))').in('order_id', orderIds)
             : Promise.resolve({ data: [] as unknown[] }),
@@ -117,6 +128,7 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
           tier: tierOf(orderRows.length, spent, lastOrderAt),
           openTickets: ticketRows.filter((t) => t.status === 'open').length,
           loyaltyPoints: prof.loyalty_points ?? 0,
+          notes: ((notes ?? []) as CustomerNote[]),
           devices,
           timeline: timeline.slice(0, 60),
         };
@@ -140,6 +152,9 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
     tier: 'champion',
     openTickets: 1,
     loyaltyPoints: 1264,
+    notes: [
+      { id: 'n1', kind: 'task', body: 'متابعة عرض كاميرات للمحل الجديد', due_at: '2026-06-15', done: false, created_at: '2026-06-10T09:00:00Z' },
+    ],
     devices: [
       { serial: 'AZD-M660-00911', product: 'داش كام أزدوم M660', status: 'sold', boughtAt: '2026-06-08T10:00:00Z' },
     ],

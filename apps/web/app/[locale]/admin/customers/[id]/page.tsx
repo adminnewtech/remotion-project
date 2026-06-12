@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { coerceLocale } from '@/lib/i18n';
 import { fetchCustomer360, type TimelineKind } from '@/lib/admin-customer';
 import { KpiCard } from '@/components/admin/ui';
+import { NotesPanel } from '@/components/admin/customers/notes-panel';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +70,10 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
           </div>
         </div>
       )}
+
+      <div className="mb-[14px]">
+        <NotesPanel customerId={c.id} initial={c.notes} ar={ar} />
+      </div>
 
       <div className={`${CARD} p-5`}>
         <h2 className="mb-4 text-[14.5px] font-bold text-osa-ink">{ar ? 'السجل الكامل' : 'Unified timeline'}</h2>

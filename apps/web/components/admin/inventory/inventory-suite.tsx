@@ -5,6 +5,7 @@ import { PageHeader, KpiCard } from '@/components/admin/ui';
 import { useT } from '@/lib/use-t';
 import type { InventorySuite, StockRow } from '@/lib/admin-inventory';
 import { adjustStock, transferStock, addLocation } from '@/app/[locale]/admin/catalog/inventory/actions';
+import { createPo } from '@/app/[locale]/admin/purchasing/actions';
 
 const CARD = 'rounded-osa border border-osa-border bg-osa-surface shadow-osa';
 const FIELD = 'rounded-osa-sm border border-osa-border bg-osa-surface-2 px-3 py-2 text-[13px] text-osa-ink outline-none focus:border-osa-brand-border';
@@ -145,6 +146,14 @@ export function InventorySuiteView({ data }: { data: InventorySuite }) {
                   <td className="border-b border-osa-border px-3 py-2.5 text-end">
                     <button type="button" onClick={() => setDialog({ kind: 'adjust', row: r })} className="me-2 text-[12px] font-semibold text-osa-brand">{ar ? 'تسوية' : 'Adjust'}</button>
                     <button type="button" onClick={() => setDialog({ kind: 'transfer', row: r })} className="text-[12px] font-semibold text-osa-blue">{ar ? 'تحويل' : 'Transfer'}</button>
+                    {r.total <= LOW && (
+                      <button type="button" disabled={pending}
+                        onClick={() => startTransition(async () => {
+                          const res = await createPo(null, data.locations[0]?.id ?? '', [{ variantId: r.variantId, qty: 10, unitCost: 0 }]);
+                          note(res.ok ? (ar ? 'أُنشئ أمر شراء (10 قطع) — راجع المشتريات' : 'PO created (10) — see Purchasing') : `${ar ? 'فشل' : 'Failed'}: ${res.error}`);
+                        })}
+                        className="ms-2 text-[12px] font-bold text-osa-amber">{ar ? '🛒 طلب شراء' : '🛒 Reorder'}</button>
+                    )}
                   </td>
                 </tr>
               ))}
