@@ -5,6 +5,9 @@ import { ProductGrid } from '@/components/product-grid';
 import { SearchBar } from '@/components/search-bar';
 import { localeAlternates } from '@/lib/seo';
 
+// ISR for the no-query catalog browse; query results stay fresh via searchParams.
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
   searchParams,

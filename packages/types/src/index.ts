@@ -36,6 +36,10 @@ export type TaskStatus =
   | 'cancelled';
 export type TicketStatus = 'open' | 'pending' | 'resolved' | 'closed';
 export type TicketKind = 'general' | 'warranty' | 'complaint' | 'return';
+/** Conversation source channel (omnichannel inbox). */
+export type TicketChannel = 'in_app' | 'whatsapp' | 'instagram' | 'email' | 'chatwoot';
+/** Direction of a ticket message relative to the business. */
+export type MessageDirection = 'inbound' | 'outbound';
 export type MediaKind = 'image' | 'video';
 export type DiscountKind = 'percent' | 'amount' | 'free_delivery';
 export type Locale = 'ar' | 'en';
@@ -261,21 +265,33 @@ export interface InstallationJob {
 export interface Ticket {
   id: UUID;
   order_id: UUID | null;
-  user_id: UUID;
+  /** Null for channel tickets (WhatsApp/Chatwoot) not yet bound to a profile. */
+  user_id: UUID | null;
   kind: TicketKind;
   status: TicketStatus;
   subject: string;
   assignee_id: UUID | null;
   zoho_desk_id: string | null;
+  /** Conversation source. Defaults to 'in_app'. */
+  channel: TicketChannel;
+  /** Source thread id (WhatsApp wa_id or Chatwoot conversation id). */
+  external_id: string | null;
+  /** Customer phone for channel tickets (E.164-ish). */
+  customer_phone: string | null;
   created_at: ISODateTime;
 }
 
 export interface TicketMessage {
   id: UUID;
   ticket_id: UUID;
-  sender_id: UUID;
+  /** Null for inbound channel messages with no auth user. */
+  sender_id: UUID | null;
   body: string;
   attachments: string[];
+  /** Inbound (customer→us) or outbound (us→customer). Defaults to 'inbound'. */
+  direction: MessageDirection;
+  /** Provider message id (idempotency / receipts). */
+  external_id: string | null;
   created_at: ISODateTime;
 }
 

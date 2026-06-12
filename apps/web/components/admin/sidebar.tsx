@@ -27,10 +27,12 @@ const ICONS: Record<string, string> = {
   staff: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM23 21v-2a4 4 0 0 0-3-3.87',
   marketing: 'M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.2-3',
   finance: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  ceo: 'M3 3v18h18M7 14l3-4 3 3 5-7',
 };
 
 const NAV: NavItem[] = [
   { key: 'dashboard', href: '', labelKey: 'admin.dashboard', icon: 'dashboard', roles: ['admin', 'employee'] },
+  { key: 'ceo', href: '/ceo', labelKey: 'admin.ceo', icon: 'ceo', roles: ['admin'] },
   { key: 'orders', href: '/orders', labelKey: 'admin.orders', icon: 'orders', roles: ['admin', 'employee'] },
   { key: 'catalog', href: '/catalog', labelKey: 'nav.catalog', icon: 'catalog', roles: ['admin', 'employee'] },
   { key: 'dispatch', href: '/dispatch', labelKey: 'admin.dispatch', icon: 'dispatch', roles: ['admin', 'employee'] },

@@ -6,6 +6,9 @@ import { fetchCategory, fetchProductsWithDisplay } from '@/lib/data';
 import { ProductGrid } from '@/components/product-grid';
 import { absoluteUrl, breadcrumbJsonLd, JsonLd } from '@/lib/seo';
 
+// ISR: category listings change slowly — revalidate every 5 minutes.
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {

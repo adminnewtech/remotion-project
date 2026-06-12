@@ -46,6 +46,7 @@ import * as supportNs from './support';
 import * as realtimeNs from './realtime';
 import * as notificationsNs from './notifications';
 import * as analyticsNs from './analytics';
+import * as aiNs from './ai';
 
 export const auth = authNs;
 export const catalog = catalogNs;
@@ -56,3 +57,4 @@ export const support = supportNs;
 export const realtime = realtimeNs;
 export const notifications = notificationsNs;
 export const analytics = analyticsNs;
+export const ai = aiNs;

@@ -18,6 +18,7 @@ import type {
   Review,
   FulfillmentTask,
   Ticket,
+  TicketMessage,
 } from '@elite/types';
 
 const IMG = (q: string) =>
@@ -160,6 +161,19 @@ export function sampleTasks(orderId: string): FulfillmentTask[] {
 }
 
 export const sampleTickets: Ticket[] = [
-  { id: 'tk-1', order_id: 'o-1002', user_id: 'u1', kind: 'warranty', status: 'open', subject: 'Soundbar HDMI port issue', assignee_id: null, zoho_desk_id: 'ZD-5521', created_at: '2026-06-05T08:00:00Z' },
-  { id: 'tk-2', order_id: null, user_id: 'u1', kind: 'general', status: 'resolved', subject: 'Installation scheduling question', assignee_id: 'emp1', zoho_desk_id: 'ZD-5490', created_at: '2026-05-30T12:00:00Z' },
+  { id: 'tk-1', order_id: 'o-1002', user_id: 'u1', kind: 'warranty', status: 'open', subject: 'Soundbar HDMI port issue', assignee_id: null, zoho_desk_id: 'ZD-5521', channel: 'in_app', external_id: null, customer_phone: null, created_at: '2026-06-05T08:00:00Z' },
+  { id: 'tk-2', order_id: null, user_id: 'u1', kind: 'general', status: 'resolved', subject: 'Installation scheduling question', assignee_id: 'emp1', zoho_desk_id: 'ZD-5490', channel: 'in_app', external_id: null, customer_phone: null, created_at: '2026-05-30T12:00:00Z' },
+  { id: 'tk-3', order_id: 'o-1003', user_id: null, kind: 'general', status: 'open', subject: 'WhatsApp · Ahmad', assignee_id: null, zoho_desk_id: null, channel: 'whatsapp', external_id: '96550001234', customer_phone: '96550001234', created_at: '2026-06-11T09:30:00Z' },
+  { id: 'tk-4', order_id: null, user_id: null, kind: 'complaint', status: 'pending', subject: 'Chatwoot · Instagram DM', assignee_id: null, zoho_desk_id: null, channel: 'chatwoot', external_id: '4821', customer_phone: null, created_at: '2026-06-10T17:10:00Z' },
 ];
+
+export const sampleTicketMessages: Record<string, TicketMessage[]> = {
+  'tk-1': [
+    { id: 'm-1', ticket_id: 'tk-1', sender_id: 'u1', body: 'مرحباً، منفذ HDMI في الساوندبار لا يعمل.', attachments: [], direction: 'inbound', external_id: null, created_at: '2026-06-05T08:00:00Z' },
+    { id: 'm-2', ticket_id: 'tk-1', sender_id: 'emp1', body: 'أهلاً بك، سنرتب زيارة فني لفحص الجهاز.', attachments: [], direction: 'outbound', external_id: null, created_at: '2026-06-05T08:12:00Z' },
+  ],
+  'tk-3': [
+    { id: 'm-3', ticket_id: 'tk-3', sender_id: null, body: 'متى يوصل طلبي؟', attachments: [], direction: 'inbound', external_id: 'wamid.X', created_at: '2026-06-11T09:30:00Z' },
+    { id: 'm-4', ticket_id: 'tk-3', sender_id: 'emp1', body: 'طلبك خرج للتوصيل وسيصل خلال ساعة.', attachments: [], direction: 'outbound', external_id: 'wamid.Y', created_at: '2026-06-11T09:35:00Z' },
+  ],
+};

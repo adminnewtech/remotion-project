@@ -18,6 +18,7 @@ import type {
   ProductWithVariants,
   Review,
   Ticket,
+  TicketMessage,
 } from '@elite/types';
 import type { OrderWithItems, OrderTracking } from '@elite/core';
 import { getServerClient } from '@/lib/supabase/server';
@@ -31,6 +32,7 @@ import {
   sampleOrderItems,
   sampleTasks,
   sampleTickets,
+  sampleTicketMessages,
 } from '@/lib/sample-data';
 import type { ProductDisplay, ProductWithDisplay } from '@/lib/product-display';
 
@@ -391,4 +393,34 @@ export async function fetchTickets(): Promise<Ticket[]> {
     }
   }
   return sampleTickets;
+}
+
+/**
+ * Omnichannel inbox seed for the admin support page: every channel ticket plus
+ * a map of each ticket's messages, so the client renders threads immediately and
+ * subscribes for realtime updates. Falls back to clearly-marked sample data.
+ */
+export async function fetchSupportInbox(): Promise<{
+  tickets: Ticket[];
+  messages: Record<string, TicketMessage[]>;
+}> {
+  const client = await getServerClient();
+  if (client) {
+    try {
+      const tickets = await support.listTicketsByChannel(client);
+      if (tickets.length) {
+        const messages: Record<string, TicketMessage[]> = {};
+        await Promise.all(
+          tickets.slice(0, 30).map(async (tk) => {
+            const full = await support.getTicket(client, tk.id);
+            messages[tk.id] = full?.messages ?? [];
+          }),
+        );
+        return { tickets, messages };
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  return { tickets: sampleTickets, messages: sampleTicketMessages };
 }

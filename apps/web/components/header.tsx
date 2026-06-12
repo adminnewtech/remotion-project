@@ -67,6 +67,12 @@ export function Header({ categories }: { categories: Category[] }) {
           <Link href={`${base}/search`} className="rounded-full px-3 py-1.5 text-sm font-medium text-muted hover:bg-neutral-100 hover:text-foreground">
             {t('catalog.allCategories')}
           </Link>
+          <Link href={`${base}/offers`} className="rounded-full px-3 py-1.5 text-sm font-bold text-accent hover:bg-accent-50">
+            {locale === 'ar' ? 'العروض' : 'Offers'}
+          </Link>
+          <Link href={`${base}/brands`} className="rounded-full px-3 py-1.5 text-sm font-medium text-muted hover:bg-neutral-100 hover:text-foreground">
+            {t('catalog.brands')}
+          </Link>
           {categories.map((c) => (
             <Link
               key={c.id}
