@@ -26,6 +26,14 @@ serve(async (req: Request): Promise<Response> => {
   if (!body.ticket_id) return jsonError("ticket_id required", 400);
 
   const admin = getAdminClient();
+
+  // Check kill switch (reads app_settings.ai.triage_agent — false = disabled)
+  const { data: settings } = await admin.from("app_settings").select("ai").single();
+  const aiKill = (settings?.ai as Record<string, boolean> | null) ?? {};
+  if (aiKill.triage_agent === false) {
+    return json({ ok: false, reason: "triage agent disabled" });
+  }
+
   const sessionId = crypto.randomUUID();
 
   const tools: AgentTool[] = [
