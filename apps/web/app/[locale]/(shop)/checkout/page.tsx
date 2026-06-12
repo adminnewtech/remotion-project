@@ -2,14 +2,17 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { PaymentMethod } from '@elite/types';
+import { FREE_DELIVERY_THRESHOLD_KWD } from '@elite/types';
 import { Button, Input, Select } from '@elite/ui/web';
 import { orders as coreOrders, cart as coreCart } from '@elite/core';
 import { useCart } from '@/components/cart-store';
 import { useSupabase } from '@/components/providers';
 import { useT } from '@/lib/use-t';
 import { OrderSummary } from '@/components/order-summary';
+import { listPickupLocations, type PickupLocation } from '@/lib/pickup-locations';
+import { fulfillmentDeliveryFee, round3, type Fulfillment } from '@/lib/pure/money';
 
 const GOVERNORATES = ['Al Asimah', 'Hawalli', 'Farwaniya', 'Ahmadi', 'Jahra', 'Mubarak Al-Kabeer'];
 
@@ -22,7 +25,10 @@ const SLOTS = [
 
 const PAYMENT_METHODS: PaymentMethod[] = ['knet', 'apple_pay', 'google_pay', 'card', 'cod'];
 
-type Step = 0 | 1 | 2 | 3;
+// Mirrors the storefront flat delivery fee (cart-store). Pickup overrides to 0.
+const FLAT_DELIVERY_FEE_KWD = 1.5;
+
+type Step = 0 | 1 | 2 | 3 | 4;
 
 export default function CheckoutPage() {
   const { t, locale } = useT();
@@ -32,20 +38,63 @@ export default function CheckoutPage() {
   const base = `/${locale}`;
 
   const hasInstall = cart.lines.some((l) => l.withInstallation);
-  const stepKeys = useMemo(
-    () => (hasInstall ? ['address', 'delivery', 'installation', 'payment'] : ['address', 'delivery', 'payment']),
-    [hasInstall],
-  );
+  const [fulfillment, setFulfillment] = useState<Fulfillment>('delivery');
+
+  // Pickup hides the address + delivery-slot steps and shows a location picker.
+  const stepKeys = useMemo(() => {
+    const tail = hasInstall ? ['installation', 'payment'] : ['payment'];
+    return fulfillment === 'pickup'
+      ? ['fulfillment', 'pickup', ...tail]
+      : ['fulfillment', 'address', 'delivery', ...tail];
+  }, [hasInstall, fulfillment]);
 
   const [step, setStep] = useState<Step>(0);
   const [address, setAddress] = useState({ label: '', governorate: '', area: '', block: '', street: '', building: '', floor: '', apartment: '' });
   const [deliverySlot, setDeliverySlot] = useState('');
   const [installSlot, setInstallSlot] = useState('');
   const [payment, setPayment] = useState<PaymentMethod>('knet');
+  const [pickupLocations, setPickupLocations] = useState<PickupLocation[]>([]);
+  const [pickupLocationId, setPickupLocationId] = useState('');
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Load pickup-enabled showrooms once (when a backend is present).
+  useEffect(() => {
+    if (!supabase) return;
+    let active = true;
+    listPickupLocations(supabase).then((locs) => {
+      if (active) setPickupLocations(locs);
+    });
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  // Switching fulfillment can shrink the wizard; clamp the active step.
+  useEffect(() => {
+    setStep((s) => (s > stepKeys.length - 1 ? ((stepKeys.length - 1) as Step) : s));
+  }, [stepKeys.length]);
+
+  // Pickup is always free delivery; otherwise use the cart's computed fee.
+  const summaryTotals = useMemo(() => {
+    const deliveryFee = fulfillmentDeliveryFee(
+      fulfillment,
+      cart.totals.subtotal,
+      FREE_DELIVERY_THRESHOLD_KWD,
+      FLAT_DELIVERY_FEE_KWD,
+    );
+    return {
+      ...cart.totals,
+      deliveryFee,
+      total: round3(cart.totals.subtotal + deliveryFee + cart.totals.installationFee),
+    };
+  }, [cart.totals, fulfillment]);
+
   const isLast = step === stepKeys.length - 1;
+  // Block advancing past the pickup step until a showroom is chosen.
+  const pickupStepUnsatisfied = stepKeys[step] === 'pickup' && !pickupLocationId;
+  const continueDisabled = pickupStepUnsatisfied;
+  const placeDisabled = fulfillment === 'pickup' && !pickupLocationId;
 
   async function placeOrder() {
     setPlacing(true);
@@ -64,30 +113,40 @@ export default function CheckoutPage() {
             await coreCart.addItem(supabase, serverCart.id, l.variantId, l.qty, l.withInstallation);
           }
 
-          const { data: addr, error: addrErr } = await supabase
-            .from('addresses')
-            .insert({
-              user_id: auth.user.id,
-              label: address.label || null,
-              governorate: address.governorate || null,
-              area: address.area || null,
-              block: address.block || null,
-              street: address.street || null,
-              building: address.building || null,
-              floor: address.floor || null,
-              apartment: address.apartment || null,
-            })
-            .select('id')
-            .single();
-          if (addrErr || !addr) throw addrErr ?? new Error('address');
+          // Delivery persists an address; pickup uses a showroom instead.
+          let addressId: string | undefined;
+          if (fulfillment === 'delivery') {
+            const { data: addr, error: addrErr } = await supabase
+              .from('addresses')
+              .insert({
+                user_id: auth.user.id,
+                label: address.label || null,
+                governorate: address.governorate || null,
+                area: address.area || null,
+                block: address.block || null,
+                street: address.street || null,
+                building: address.building || null,
+                floor: address.floor || null,
+                apartment: address.apartment || null,
+              })
+              .select('id')
+              .single();
+            if (addrErr || !addr) throw addrErr ?? new Error('address');
+            addressId = (addr as { id: string }).id;
+          }
 
           const slot = SLOTS.find((s) => s.id === deliverySlot);
           const inst = SLOTS.find((s) => s.id === installSlot);
           const res = await coreOrders.checkout(supabase, {
             cart_id: serverCart.id,
-            address_id: (addr as { id: string }).id,
             payment_method: payment,
-            ...(slot ? { delivery_slot: { start: slot.start, end: slot.end } } : {}),
+            fulfillment,
+            ...(fulfillment === 'pickup'
+              ? { pickup_location_id: pickupLocationId }
+              : {
+                  ...(addressId ? { address_id: addressId } : {}),
+                  ...(slot ? { delivery_slot: { start: slot.start, end: slot.end } } : {}),
+                }),
             ...(hasInstall && inst ? { installation_slot: { start: inst.start, end: inst.end } } : {}),
           });
 
@@ -95,7 +154,10 @@ export default function CheckoutPage() {
           if (res.payment_url && payment !== 'cod') {
             window.location.href = res.payment_url; // hosted KNET page
           } else {
-            router.push(`${base}/checkout/confirmation?order=${encodeURIComponent(res.order_number)}`);
+            const codeParam = res.pickup_code
+              ? `&pickup=${encodeURIComponent(res.pickup_code)}`
+              : '';
+            router.push(`${base}/checkout/confirmation?order=${encodeURIComponent(res.order_number)}${codeParam}`);
           }
           return;
         }
@@ -149,6 +211,65 @@ export default function CheckoutPage() {
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {/* Step: fulfillment method (delivery | pickup) */}
+          {stepKeys[step] === 'fulfillment' && (
+            <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+              <h2 className="mb-4 text-lg font-bold">{t('checkout.fulfillment.title')}</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(['delivery', 'pickup'] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFulfillment(f)}
+                    className={`flex flex-col items-start gap-1 rounded-xl border p-4 text-start transition ${fulfillment === f ? 'border-primary bg-primary-50' : 'border-border hover:border-primary/50'}`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${fulfillment === f ? 'border-primary' : 'border-neutral-400'}`}>
+                        {fulfillment === f && <span className="h-2 w-2 rounded-full bg-primary" />}
+                      </span>
+                      <span className="text-sm font-semibold">{t(`checkout.fulfillment.${f}`)}</span>
+                    </span>
+                    <span className="text-xs text-muted">{t(`checkout.fulfillment.${f}Hint`)}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Step: pickup location */}
+          {stepKeys[step] === 'pickup' && (
+            <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+              <h2 className="mb-4 text-lg font-bold">{t('checkout.fulfillment.selectLocation')}</h2>
+              {pickupLocations.length === 0 ? (
+                <p className="text-sm text-muted">{t('checkout.fulfillment.noLocations')}</p>
+              ) : (
+                <div className="space-y-2">
+                  {pickupLocations.map((loc) => (
+                    <label
+                      key={loc.id}
+                      className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition ${pickupLocationId === loc.id ? 'border-primary bg-primary-50' : 'border-border hover:border-primary/50'}`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="pickup"
+                          checked={pickupLocationId === loc.id}
+                          onChange={() => setPickupLocationId(loc.id)}
+                          className="accent-primary"
+                        />
+                        <span className="flex flex-col">
+                          <span className="text-sm font-medium">{loc.name}</span>
+                          {loc.area && <span className="text-xs text-muted">{loc.area}</span>}
+                        </span>
+                      </span>
+                      <span className="text-xs font-semibold text-success">{t('checkout.fulfillment.pickupFree')}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Step: address */}
           {stepKeys[step] === 'address' && (
             <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
@@ -208,11 +329,11 @@ export default function CheckoutPage() {
               {t('common.back')}
             </Button>
             {isLast ? (
-              <Button onClick={placeOrder} loading={placing} size="lg">
+              <Button onClick={placeOrder} loading={placing} disabled={placeDisabled} size="lg">
                 {placing ? t('checkout.placingOrder') : t('checkout.placeOrder')}
               </Button>
             ) : (
-              <Button onClick={() => setStep((s) => (s + 1) as Step)} size="lg">
+              <Button onClick={() => setStep((s) => (s + 1) as Step)} disabled={continueDisabled} size="lg">
                 {t('common.continue')}
               </Button>
             )}
@@ -220,7 +341,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <OrderSummary totals={cart.totals} sticky />
+          <OrderSummary totals={summaryTotals} sticky />
         </div>
       </div>
     </div>

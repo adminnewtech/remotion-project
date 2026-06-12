@@ -28,11 +28,24 @@ const DEFAULT_CURRENCY = "KWD";
 
 interface CheckoutRequest {
   cart_id: string;
-  address_id: string;
+  address_id?: string;
   payment_method: "knet" | "apple_pay" | "google_pay" | "card" | "cod";
+  fulfillment?: "delivery" | "pickup";
+  pickup_location_id?: string;
   delivery_slot?: { start: string; end: string };
   installation_slot?: { start: string; end: string };
   discount_code?: string;
+}
+
+// Short, unambiguous pickup code (no 0/O/1/I) printed on the order for the
+// customer to quote at the counter.
+function generatePickupCode(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return code;
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -58,8 +71,16 @@ serve(async (req: Request): Promise<Response> => {
     return jsonError("Invalid JSON body", 400);
   }
 
-  if (!body?.cart_id || !body?.address_id || !body?.payment_method) {
-    return jsonError("cart_id, address_id and payment_method are required", 400);
+  const fulfillment = body?.fulfillment === "pickup" ? "pickup" : "delivery";
+
+  if (!body?.cart_id || !body?.payment_method) {
+    return jsonError("cart_id and payment_method are required", 400);
+  }
+  if (fulfillment === "delivery" && !body?.address_id) {
+    return jsonError("address_id is required for delivery", 400);
+  }
+  if (fulfillment === "pickup" && !body?.pickup_location_id) {
+    return jsonError("pickup_location_id is required for pickup", 400);
   }
 
   const admin = getAdminClient();
@@ -77,15 +98,28 @@ serve(async (req: Request): Promise<Response> => {
     if (cart.user_id !== user.id) return jsonError("Cart does not belong to caller", 403);
     if (cart.status !== "active") return jsonError("Cart is not active", 409);
 
-    // ── Authorize the delivery address ───────────────────────────────────
-    const { data: address, error: addrErr } = await admin
-      .from("addresses")
-      .select("id, user_id, area")
-      .eq("id", body.address_id)
-      .maybeSingle();
-    if (addrErr) throw addrErr;
-    if (!address || address.user_id !== user.id) {
-      return jsonError("Address not found for caller", 404);
+    // ── Authorize fulfillment target (delivery address | pickup location) ─
+    if (fulfillment === "delivery") {
+      const { data: address, error: addrErr } = await admin
+        .from("addresses")
+        .select("id, user_id, area")
+        .eq("id", body.address_id!)
+        .maybeSingle();
+      if (addrErr) throw addrErr;
+      if (!address || address.user_id !== user.id) {
+        return jsonError("Address not found for caller", 404);
+      }
+    } else {
+      // Pickup: the chosen showroom must exist and allow pickup.
+      const { data: loc, error: locErr } = await admin
+        .from("locations")
+        .select("id, allows_pickup, is_active")
+        .eq("id", body.pickup_location_id!)
+        .maybeSingle();
+      if (locErr) throw locErr;
+      if (!loc || loc.allows_pickup !== true || loc.is_active === false) {
+        return jsonError("Pickup location is not available", 409);
+      }
     }
 
     // ── Load cart items with variant prices + product info ───────────────
@@ -190,7 +224,12 @@ serve(async (req: Request): Promise<Response> => {
     // ── Compute totals (KWD, 3 decimals) ─────────────────────────────────
     const subtotal = kwd(prepared.reduce((s, l) => s + l.line_total, 0));
     const installationFee = kwd(prepared.reduce((s, l) => s + l.installation_fee, 0));
-    let deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD_KWD ? 0 : DELIVERY_FEE_KWD;
+    // Store pickup is always free; delivery uses the threshold/flat-fee rule.
+    let deliveryFee = fulfillment === "pickup"
+      ? 0
+      : subtotal >= FREE_DELIVERY_THRESHOLD_KWD
+      ? 0
+      : DELIVERY_FEE_KWD;
 
     // ── Apply discount code ──────────────────────────────────────────────
     let discountTotal = 0;
@@ -236,6 +275,9 @@ serve(async (req: Request): Promise<Response> => {
       ? `[${body.delivery_slot.start},${body.delivery_slot.end})`
       : null;
 
+    const isPickup = fulfillment === "pickup";
+    const pickupCode = isPickup ? generatePickupCode() : null;
+
     const { data: order, error: orderErr } = await admin
       .from("orders")
       .insert({
@@ -247,11 +289,14 @@ serve(async (req: Request): Promise<Response> => {
         discount_total: discountTotal,
         total,
         currency: DEFAULT_CURRENCY,
-        address_id: body.address_id,
-        delivery_slot: deliverySlot,
+        fulfillment,
+        address_id: isPickup ? null : body.address_id,
+        pickup_location_id: isPickup ? body.pickup_location_id : null,
+        pickup_code: pickupCode,
+        delivery_slot: isPickup ? null : deliverySlot,
         placed_at: new Date().toISOString(),
       })
-      .select("id, order_number, total")
+      .select("id, order_number, total, pickup_code")
       .single();
 
     if (orderErr || !order) {
@@ -360,6 +405,7 @@ serve(async (req: Request): Promise<Response> => {
       order_number: order.order_number,
       total,
       payment_url: paymentUrl,
+      ...(pickupCode ? { pickup_code: pickupCode } : {}),
     };
     return json(result, 201);
   } catch (err) {

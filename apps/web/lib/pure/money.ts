@@ -19,3 +19,21 @@ export function deliveryFee(subtotal: number, freeThreshold: number, zoneFee: nu
   if (subtotal >= freeThreshold) return 0;
   return round3(zoneFee);
 }
+
+/** Fulfillment method: home delivery vs. store pickup. */
+export type Fulfillment = 'delivery' | 'pickup';
+
+/**
+ * Resolve the delivery fee given the fulfillment method. Store pickup is always
+ * free (the customer collects from the showroom); delivery falls back to the
+ * standard threshold/zone logic in {@link deliveryFee}.
+ */
+export function fulfillmentDeliveryFee(
+  fulfillment: Fulfillment,
+  subtotal: number,
+  freeThreshold: number,
+  zoneFee: number,
+): number {
+  if (fulfillment === 'pickup') return 0;
+  return deliveryFee(subtotal, freeThreshold, zoneFee);
+}

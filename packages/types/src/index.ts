@@ -321,8 +321,13 @@ export interface AppNotification {
 // ── DTOs used by Edge Functions ────────────────────────────
 export interface CheckoutRequest {
   cart_id: UUID;
-  address_id: UUID;
+  /** Required for delivery; omitted for store pickup. */
+  address_id?: UUID;
   payment_method: PaymentMethod;
+  /** Defaults to 'delivery' when omitted. */
+  fulfillment?: 'delivery' | 'pickup';
+  /** Required when fulfillment is 'pickup' — the showroom to collect from. */
+  pickup_location_id?: UUID;
   delivery_slot?: { start: ISODateTime; end: ISODateTime };
   installation_slot?: { start: ISODateTime; end: ISODateTime };
   discount_code?: string;
@@ -333,6 +338,8 @@ export interface CheckoutResult {
   order_number: string;
   total: number;
   payment_url?: string;
+  /** Present for store-pickup orders — the code to quote at the counter. */
+  pickup_code?: string;
 }
 
 export const FREE_DELIVERY_THRESHOLD_KWD = 10;
