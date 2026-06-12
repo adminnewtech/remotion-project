@@ -13,6 +13,7 @@
  */
 import type { TaskStatus } from '@elite/types';
 import { getServerClient } from '@/lib/supabase/server';
+import { planAssignments, type AssignableTask } from '@/lib/pure/dispatch-assign';
 
 export interface DispatchActionResult {
   ok: boolean;
@@ -75,26 +76,23 @@ export async function autoAssignTasks(): Promise<DispatchActionResult> {
       if (b.assignee_id) load.set(b.assignee_id, (load.get(b.assignee_id) ?? 0) + 1);
     }
 
-    function leastLoaded(pool: string[]): string | null {
-      if (!pool.length) return null;
-      let best = pool[0]!;
-      for (const id of pool) if ((load.get(id) ?? 0) < (load.get(best) ?? 0)) best = id;
-      return best;
-    }
-
+    // Balancing logic lives (unit-tested) in lib/pure/dispatch-assign.
+    const plan = planAssignments(
+      ((tasks ?? []) as { id: string; type: string }[]).map((t) => ({
+        id: t.id,
+        type: t.type as AssignableTask['type'],
+      })),
+      drivers,
+      techs,
+      load,
+    );
     let assigned = 0;
-    for (const task of (tasks ?? []) as { id: string; type: string }[]) {
-      const pool = task.type === 'delivery' ? drivers : techs;
-      const owner = leastLoaded(pool);
-      if (!owner) continue;
+    for (const step of plan) {
       const { error } = await client
         .from('fulfillment_tasks')
-        .update({ assignee_id: owner, status: 'assigned' as TaskStatus })
-        .eq('id', task.id);
-      if (!error) {
-        load.set(owner, (load.get(owner) ?? 0) + 1);
-        assigned += 1;
-      }
+        .update({ assignee_id: step.assigneeId, status: 'assigned' as TaskStatus })
+        .eq('id', step.taskId);
+      if (!error) assigned += 1;
     }
     return { ok: true, live: true, assigned };
   } catch (e) {

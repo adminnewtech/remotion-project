@@ -38,6 +38,7 @@ const ICONS: Record<string, string> = {
   accounting: '<path stroke-linecap="round" d="M4 19V5a1 1 0 011-1h9l5 5v10a1 1 0 01-1 1H5a1 1 0 01-1-1zM14 4v5h5M8 13h8M8 16.5h5"/>',
   staff: '<circle cx="12" cy="7" r="3.2"/><path stroke-linecap="round" d="M5 21c0-3.5 3.1-6 7-6s7 2.5 7 6"/>',
   reports: '<path stroke-linecap="round" d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M19.4 13a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-2.92 1.06V21a2 2 0 11-4 0v-.07A1.65 1.65 0 006.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 003 13.4a2 2 0 010-4h.07A1.65 1.65 0 004.6 6.6l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 0011 3.07V3a2 2 0 014 0v.07a1.65 1.65 0 002.92 1.06l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0021 10.6a2 2 0 010 4z"/>',
 };
 
 const GROUPS: NavGroup[] = [
@@ -48,6 +49,7 @@ const GROUPS: NavGroup[] = [
       { key: 'overview', href: '', labelAr: 'نظرة عامة', labelEn: 'Overview', icon: 'overview', roles: ['admin', 'employee'] },
       { key: 'orders', href: '/orders', labelAr: 'الطلبات', labelEn: 'Orders', icon: 'orders', roles: ['admin', 'employee'], badge: '23', badgeTone: 'brand' },
       { key: 'catalog', href: '/catalog', labelAr: 'المنتجات والمخزون', labelEn: 'Products & inventory', icon: 'catalog', roles: ['admin', 'employee'] },
+      { key: 'purchasing', href: '/purchasing', labelAr: 'المشتريات', labelEn: 'Purchasing', icon: 'accounting', roles: ['admin', 'employee'] },
       { key: 'cashier', href: '/cashier', labelAr: 'الكاشير', labelEn: 'Cashier', icon: 'cashier', roles: ['admin', 'employee'], badge: 'وردية', badgeTone: 'warn' },
     ],
   },
@@ -76,6 +78,7 @@ const GROUPS: NavGroup[] = [
       { key: 'staff', href: '/staff', labelAr: 'الموظفون', labelEn: 'Staff', icon: 'staff', roles: ['admin'] },
       { key: 'analytics', href: '/analytics', labelAr: 'التحليلات', labelEn: 'Analytics', icon: 'reports', roles: ['admin', 'employee'] },
       { key: 'reports', href: '/ceo', labelAr: 'لوحة الرئيس', labelEn: 'Executive', icon: 'reports', roles: ['admin'] },
+      { key: 'settings', href: '/settings', labelAr: 'الإعدادات', labelEn: 'Settings', icon: 'settings', roles: ['admin'] },
     ],
   },
 ];

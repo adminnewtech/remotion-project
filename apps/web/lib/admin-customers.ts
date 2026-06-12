@@ -10,6 +10,7 @@ import 'server-only';
  */
 import type { OrderStatus } from '@elite/types';
 import { getServerClient } from '@/lib/supabase/server';
+import { tierOf, type CustomerTier } from '@/lib/pure/customer-tier';
 
 export interface CustomerRow {
   id: string;
@@ -20,6 +21,8 @@ export interface CustomerRow {
   spent: number;
   lastOrderAt: string | null;
   joinedAt: string;
+  /** RFM-style segment (shared, unit-tested classifier). */
+  tier: CustomerTier;
 }
 
 export interface CustomersData {
@@ -71,15 +74,19 @@ export async function fetchCustomers(): Promise<CustomersData> {
 
         const rows: CustomerRow[] = (profiles as ProfileRow[]).map((p) => {
           const a = agg.get(p.id);
+          const spent = round3(a?.spent ?? 0);
+          const orders = a?.orders ?? 0;
+          const last = a?.last ?? null;
           return {
             id: p.id,
             name: p.full_name ?? '—',
             phone: p.phone,
             email: p.email,
-            orders: a?.orders ?? 0,
-            spent: round3(a?.spent ?? 0),
-            lastOrderAt: a?.last ?? null,
+            orders,
+            spent,
+            lastOrderAt: last,
             joinedAt: p.created_at,
+            tier: tierOf(orders, spent, last),
           };
         });
         rows.sort((x, y) => y.spent - x.spent);
@@ -99,11 +106,11 @@ export async function fetchCustomers(): Promise<CustomersData> {
 }
 
 const SAMPLE: CustomerRow[] = [
-  { id: 'c1', name: 'أحمد الكندري', phone: '+96550010001', email: 'ahmad@example.com', orders: 7, spent: 1264.5, lastOrderAt: '2026-06-08T10:00:00Z', joinedAt: '2025-09-01T00:00:00Z' },
-  { id: 'c2', name: 'سارة المطيري', phone: '+96550010002', email: null, orders: 4, spent: 712.0, lastOrderAt: '2026-06-05T14:00:00Z', joinedAt: '2025-10-12T00:00:00Z' },
-  { id: 'c3', name: 'يوسف العنزي', phone: '+96550010003', email: null, orders: 2, spent: 419.0, lastOrderAt: '2026-05-22T09:00:00Z', joinedAt: '2026-01-03T00:00:00Z' },
-  { id: 'c4', name: 'فاطمة الهاجري', phone: '+96550010004', email: 'fatima@example.com', orders: 1, spent: 214.0, lastOrderAt: '2026-06-01T16:00:00Z', joinedAt: '2026-03-18T00:00:00Z' },
-  { id: 'c5', name: 'عمر الشمري', phone: '+96550010005', email: null, orders: 0, spent: 0, lastOrderAt: null, joinedAt: '2026-06-10T00:00:00Z' },
+  { id: 'c1', name: 'أحمد الكندري', phone: '+96550010001', email: 'ahmad@example.com', orders: 7, spent: 1264.5, lastOrderAt: '2026-06-08T10:00:00Z', joinedAt: '2025-09-01T00:00:00Z', tier: 'champion' },
+  { id: 'c2', name: 'سارة المطيري', phone: '+96550010002', email: null, orders: 4, spent: 712.0, lastOrderAt: '2026-06-05T14:00:00Z', joinedAt: '2025-10-12T00:00:00Z', tier: 'loyal' },
+  { id: 'c3', name: 'يوسف العنزي', phone: '+96550010003', email: null, orders: 2, spent: 419.0, lastOrderAt: '2026-01-22T09:00:00Z', joinedAt: '2026-01-03T00:00:00Z', tier: 'at_risk' },
+  { id: 'c4', name: 'فاطمة الهاجري', phone: '+96550010004', email: 'fatima@example.com', orders: 1, spent: 214.0, lastOrderAt: '2026-06-01T16:00:00Z', joinedAt: '2026-03-18T00:00:00Z', tier: 'active' },
+  { id: 'c5', name: 'عمر الشمري', phone: '+96550010005', email: null, orders: 0, spent: 0, lastOrderAt: null, joinedAt: '2026-06-10T00:00:00Z', tier: 'new' },
 ];
 
 interface ProfileRow {
