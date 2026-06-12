@@ -5,21 +5,22 @@
   "description": "Remotion marketing video studio for Newtech / Elite v1",
   "scripts": {
     "dev": "remotion studio",
-    "build": "remotion render",
+    "build": "echo \"(video renders on demand: pnpm render)\"",
+    "render": "remotion render",
     "lint": "echo \"(no lint configured for video)\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@remotion/animated-emoji": "4.0.438",
-    "@remotion/animation-utils": "4.0.438",
-    "@remotion/cli": "^4.0.438",
-    "@remotion/cloudrun": "4.0.438",
-    "@remotion/enable-scss": "4.0.438",
-    "@remotion/fonts": "4.0.438",
-    "@remotion/gif": "4.0.438",
-    "@remotion/google-fonts": "4.0.438",
-    "@remotion/install-whisper-cpp": "4.0.438",
-    "remotion": "^4.0.438"
+    "@remotion/animated-emoji": "4.0.474",
+    "@remotion/animation-utils": "4.0.474",
+    "@remotion/cli": "4.0.474",
+    "@remotion/cloudrun": "4.0.474",
+    "@remotion/enable-scss": "4.0.474",
+    "@remotion/fonts": "4.0.474",
+    "@remotion/gif": "4.0.474",
+    "@remotion/google-fonts": "4.0.474",
+    "@remotion/install-whisper-cpp": "4.0.474",
+    "remotion": "4.0.474"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
