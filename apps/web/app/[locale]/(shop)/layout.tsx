@@ -3,6 +3,7 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-store';
 import { AuthProvider } from '@/components/auth-context';
+import { WhatsAppButton } from '@/components/whatsapp-button';
 import { fetchCategories } from '@/lib/data';
 
 /** Storefront shell: header (with categories) + footer, wrapped in cart/auth. */
@@ -15,6 +16,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
           <Header categories={categories} />
           <main className="flex-1">{children}</main>
           <Footer />
+          <WhatsAppButton />
         </div>
       </CartProvider>
     </AuthProvider>

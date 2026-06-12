@@ -51,6 +51,8 @@ export async function fetchProducts(params: {
   categoryId?: string;
   search?: string;
   brand?: string;
+  page?: number;
+  pageSize?: number;
 } = {}): Promise<Product[]> {
   const client = await getServerClient();
   if (client) {
@@ -255,6 +257,22 @@ export async function fetchProductsWithDisplay(
 ): Promise<ProductWithDisplay[]> {
   const products = await fetchProducts(params);
   return withDisplay(products);
+}
+
+/**
+ * Best-of-category rail: fetch products for a category by slug, enriched with
+ * display extras. Returns `[]` when the category/slug isn't found. Used by the
+ * homepage per-category rails (Smart Home, Projectors, Car Accessories, …).
+ */
+export async function fetchCategoryProductsBySlug(
+  slug: string,
+  limit = 8,
+): Promise<{ category: Category | null; items: ProductWithDisplay[] }> {
+  const category = await fetchCategory(slug);
+  if (!category) return { category: null, items: [] };
+  const products = (await fetchProducts({ categoryId: category.id })).slice(0, limit);
+  const items = await withDisplay(products);
+  return { category, items };
 }
 
 /** Related products: other active products in the same category. */

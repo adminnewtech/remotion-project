@@ -12,6 +12,11 @@ export interface ProductDisplay {
   salePrice: number | null;
   rating?: number;
   reviews?: number;
+  /**
+   * Optional remaining-stock hint for a low-stock nudge on the card. `null`
+   * means unknown (inventory not readable) — the card shows no stock hint.
+   */
+  lowStock?: number | null;
 }
 
 /** A product paired with its resolved display extras. */
