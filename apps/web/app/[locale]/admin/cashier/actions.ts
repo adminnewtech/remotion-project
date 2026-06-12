@@ -54,6 +54,7 @@ export async function completeSale(lines: SaleLine[], payment: PosPayment): Prom
         discount_total: 0,
         total: subtotal,
         currency: 'KWD',
+        channel: 'pos',
         notes: 'بيع مباشر — كاشير (POS)',
         placed_at: new Date().toISOString(),
       })

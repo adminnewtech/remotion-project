@@ -47,11 +47,12 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         )}
       </div>
 
-      <div className="mb-[14px] grid grid-cols-2 gap-[14px] lg:grid-cols-4">
+      <div className="mb-[14px] grid grid-cols-2 gap-[14px] lg:grid-cols-5">
         <KpiCard label={ar ? 'الطلبات' : 'Orders'} value={String(c.orders)} />
         <KpiCard label={ar ? 'إجمالي الإنفاق' : 'Lifetime spend'} value={`${fmt(c.spent)} KWD`} />
         <KpiCard label={ar ? 'متوسط الطلب' : 'Avg order'} value={`${fmt(c.avgOrder)} KWD`} />
         <KpiCard label={ar ? 'تذاكر مفتوحة' : 'Open tickets'} value={String(c.openTickets)} />
+        <KpiCard label={ar ? 'نقاط الولاء' : 'Loyalty pts'} value={String(c.loyaltyPoints)} />
       </div>
 
 

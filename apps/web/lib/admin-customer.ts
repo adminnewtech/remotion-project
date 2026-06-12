@@ -40,6 +40,7 @@ export interface Customer360 {
   lastOrderAt: string | null;
   tier: 'champion' | 'loyal' | 'active' | 'at_risk' | 'new';
   openTickets: number;
+  loyaltyPoints: number;
   devices: OwnedDevice[];
   timeline: TimelineEvent[];
 }
@@ -51,9 +52,9 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
   const client = await getServerClient();
   if (client) {
     try {
-      const { data: p } = await client.from('profiles').select('id, full_name, phone, email, created_at, role').eq('id', id).maybeSingle();
+      const { data: p } = await client.from('profiles').select('id, full_name, phone, email, created_at, role, loyalty_points').eq('id', id).maybeSingle();
       if (p) {
-        const prof = p as { id: string; full_name: string | null; phone: string | null; email: string | null; created_at: string };
+        const prof = p as { id: string; full_name: string | null; phone: string | null; email: string | null; created_at: string; loyalty_points?: number };
         const { data: orders } = await client
           .from('orders')
           .select('id, order_number, total, status, placed_at, created_at')
@@ -115,6 +116,7 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
           lastOrderAt,
           tier: tierOf(orderRows.length, spent, lastOrderAt),
           openTickets: ticketRows.filter((t) => t.status === 'open').length,
+          loyaltyPoints: prof.loyalty_points ?? 0,
           devices,
           timeline: timeline.slice(0, 60),
         };
@@ -137,6 +139,7 @@ export async function fetchCustomer360(id: string): Promise<Customer360 | null> 
     lastOrderAt: '2026-06-08T10:00:00Z',
     tier: 'champion',
     openTickets: 1,
+    loyaltyPoints: 1264,
     devices: [
       { serial: 'AZD-M660-00911', product: 'داش كام أزدوم M660', status: 'sold', boughtAt: '2026-06-08T10:00:00Z' },
     ],

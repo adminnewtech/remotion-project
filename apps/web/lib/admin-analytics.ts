@@ -100,11 +100,16 @@ export async function fetchAnalytics(range: RangeKey = '30d'): Promise<Analytics
     const from = new Date(now.getTime() - days * 86_400_000);
     const prevFrom = new Date(now.getTime() - 2 * days * 86_400_000);
 
-    const [curr, prev, top, region, payRows] = await Promise.all([
+    const [curr, prev, top, region, orderRows, payRows] = await Promise.all([
       analytics.getRevenueByDay(client, { from: ymd(from), to: ymd(now) }),
       analytics.getRevenueByDay(client, { from: ymd(prevFrom), to: ymd(from) }),
       analytics.getTopProducts(client, 4),
       analytics.getSalesByArea(client),
+      client
+        .from('orders')
+        .select('user_id, channel, total, status, created_at')
+        .gte('created_at', from.toISOString())
+        .then(({ data }) => (data ?? []) as { user_id: string | null; channel: string | null; total: number; status: string; created_at: string }[]),
       client
         .from('payments')
         .select('method, amount, status, created_at')
@@ -168,6 +173,46 @@ export async function fetchAnalytics(range: RangeKey = '30d'): Promise<Analytics
     };
     let paymentMethods = base.paymentMethods;
     let sampleSections = base.sampleSections;
+
+    // LIVE channel split + new-vs-returning from the real orders in range.
+    let channels = base.channels;
+    let customersBlock = base.customers;
+    if (orderRows.length) {
+      const { normalizeChannel, CHANNEL_AR } = await import('@/lib/pure/ops');
+      const byCh = new Map<string, number>();
+      for (const o of orderRows) {
+        const key = normalizeChannel(o.channel);
+        byCh.set(key, (byCh.get(key) ?? 0) + (o.total || 0));
+      }
+      const totalCh = Array.from(byCh.values()).reduce((s, v) => s + v, 0) || 1;
+      channels = Array.from(byCh.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([k, v], i) => ({
+          label: CHANNEL_AR[normalizeChannel(k)],
+          pct: Math.max(2, Math.round((v / totalCh) * 100)),
+          color: ['#b8860b', '#2563eb', '#16a34a', '#9333ea'][i % 4]!,
+        }));
+      sampleSections = sampleSections.filter((x) => x !== 'حسب القناة');
+
+      const inRange = new Set(orderRows.map((o) => o.user_id).filter(Boolean) as string[]);
+      if (inRange.size) {
+        const { data: history } = await client
+          .from('orders')
+          .select('user_id, created_at')
+          .in('user_id', Array.from(inRange))
+          .lt('created_at', from.toISOString())
+          .limit(1000);
+        const returning = new Set(((history ?? []) as { user_id: string | null }[]).map((h) => h.user_id).filter(Boolean) as string[]);
+        const newCount = Array.from(inRange).filter((u) => !returning.has(u)).length;
+        const ret = inRange.size - newCount;
+        customersBlock = {
+          fresh: newCount,
+          returning: ret,
+          returnRatePct: inRange.size ? Math.round((ret / inRange.size) * 100) : 0,
+        };
+        sampleSections = sampleSections.filter((x) => x !== 'العملاء');
+      }
+    }
     if (payRows.length) {
       const byMethod = new Map<string, number>();
       for (const p of payRows) {
@@ -195,6 +240,8 @@ export async function fetchAnalytics(range: RangeKey = '30d'): Promise<Analytics
       topProducts,
       byRegion,
       paymentMethods,
+      channels,
+      customers: customersBlock,
     };
   } catch {
     return base;

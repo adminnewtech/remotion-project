@@ -22,6 +22,17 @@ export interface MarketingCampaign {
   roas: number;
 }
 
+export interface DiscountRow {
+  id: string;
+  code: string;
+  kind: string;
+  value: number;
+  min_subtotal: number;
+  used_count: number;
+  usage_limit: number | null;
+  is_active: boolean;
+}
+
 export interface MarketingData {
   live: boolean;
   totalSpend: number;
@@ -29,6 +40,7 @@ export interface MarketingData {
   roas: number;
   catalogItems: number;
   campaigns: MarketingCampaign[];
+  discounts: DiscountRow[];
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -37,7 +49,7 @@ export async function fetchMarketing(): Promise<MarketingData> {
   const client = await getServerClient();
   if (client) {
     try {
-      const [{ data: rows }, { count }] = await Promise.all([
+      const [{ data: rows }, { count }, { data: discRows }] = await Promise.all([
         client
           .from('marketing_campaigns')
           .select('id, name, channel, status, spend, reach, revenue')
@@ -46,8 +58,12 @@ export async function fetchMarketing(): Promise<MarketingData> {
           .from('products')
           .select('id', { count: 'exact', head: true })
           .eq('is_active', true),
+        client.from('discounts').select('id, code, kind, value, min_subtotal, used_count, usage_limit, is_active').order('created_at', { ascending: false }).limit(30),
       ]);
 
+      const discounts: DiscountRow[] = ((discRows ?? []) as DiscountRow[]).map((d) => ({
+        ...d, value: Number(d.value), min_subtotal: Number(d.min_subtotal),
+      }));
       if (rows && rows.length) {
         const campaigns: MarketingCampaign[] = (rows as CampaignRow[]).map((c) => ({
           id: c.id,
@@ -67,6 +83,7 @@ export async function fetchMarketing(): Promise<MarketingData> {
           roas: totalSpend > 0 ? round1(totalRevenue / totalSpend) : 0,
           catalogItems: count ?? 0,
           campaigns,
+          discounts,
         };
       }
     } catch {
@@ -91,6 +108,9 @@ export async function fetchMarketing(): Promise<MarketingData> {
     roas: 4.6,
     catalogItems: 24,
     campaigns,
+    discounts: [
+      { id: 'd1', code: 'NEWTECH10', kind: 'percent', value: 10, min_subtotal: 0, used_count: 42, usage_limit: null, is_active: true },
+    ],
   };
 }
 
