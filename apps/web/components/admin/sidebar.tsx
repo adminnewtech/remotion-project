@@ -73,7 +73,11 @@ export function AdminSidebar() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                 <path d={ICONS[item.icon]} strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {t(item.labelKey)}
+              {item.key === 'ceo'
+                ? locale === 'ar'
+                  ? 'الرئيس التنفيذي'
+                  : 'CEO'
+                : t(item.labelKey)}
             </Link>
           );
         })}

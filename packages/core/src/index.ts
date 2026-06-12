@@ -19,6 +19,7 @@ export * from './tasks';
 export * from './support';
 export * from './notifications';
 export * from './analytics';
+export * from './ai';
 
 // Realtime
 export * from './realtime';
