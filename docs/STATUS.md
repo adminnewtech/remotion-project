@@ -83,7 +83,7 @@ Two Vercel projects are connected to this repo:
 | Project | Root dir | Status | Notes |
 |---|---|---|---|
 | `remotion-project-6dvr` | `apps/web` | 🟢 The real deploy | This is the live app. |
-| `remotion-project` | _(repo root)_ | 🔴 Always errors | Legacy/duplicate — repo root is not a deployable Next.js app. Safe to delete in the Vercel dashboard, or set its Root Directory to `apps/web`. Its red status on PRs is expected and unrelated to code health. |
+| `remotion-project` | _(repo root)_ | 🟢 Fixed | Root-level `vercel.json` now targets `apps/web` (framework `nextjs`, build `pnpm --filter @elite/web build`, output `apps/web/.next`), so this project builds the web app too instead of erroring on the bare repo root. |
 
 ## Known limitations / sandbox notes
 
