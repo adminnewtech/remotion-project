@@ -35,6 +35,9 @@ const ICONS: Record<string, string> = {
   customers: '<circle cx="9" cy="8" r="3.2"/><path stroke-linecap="round" d="M3 20c0-3 2.7-5 6-5s6 2 6 5M16 4.5a3.2 3.2 0 010 7M21 20c0-2.5-1.8-4.2-4.2-4.8"/>',
   chats: '<path stroke-linecap="round" d="M21 12a8 8 0 01-11.6 7.2L4 21l1.8-5.4A8 8 0 1121 12z"/>',
   campaigns: '<path stroke-linecap="round" d="M11 5L4 9v6l7 4V5zM15 8.5a4 4 0 010 7M18 6a8 8 0 010 12"/>',
+  crm: '<path stroke-linecap="round" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 110-8 4 4 0 010 8zm6 4v-2a4 4 0 00-3-3.87M3 18v-2a4 4 0 013-3.87"/>',
+  inbox: '<path stroke-linecap="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
+  approvals: '<path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
   accounting: '<path stroke-linecap="round" d="M4 19V5a1 1 0 011-1h9l5 5v10a1 1 0 01-1 1H5a1 1 0 01-1-1zM14 4v5h5M8 13h8M8 16.5h5"/>',
   staff: '<circle cx="12" cy="7" r="3.2"/><path stroke-linecap="round" d="M5 21c0-3.5 3.1-6 7-6s7 2.5 7 6"/>',
   reports: '<path stroke-linecap="round" d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
@@ -67,6 +70,8 @@ const GROUPS: NavGroup[] = [
     labelEn: 'Customers & marketing',
     items: [
       { key: 'customers', href: '/customers', labelAr: 'العملاء', labelEn: 'Customers', icon: 'customers', roles: ['admin', 'employee'] },
+      { key: 'crm', href: '/crm', labelAr: 'المبيعات (CRM)', labelEn: 'Sales Pipeline', icon: 'crm', roles: ['admin', 'employee'] },
+      { key: 'inbox', href: '/inbox', labelAr: 'مركز الرسائل', labelEn: 'Inbox', icon: 'inbox', roles: ['admin', 'employee'] },
       { key: 'chats', href: '/support', labelAr: 'المحادثات', labelEn: 'Conversations', icon: 'chats', roles: ['admin', 'employee'], badge: '12', badgeTone: 'brand' },
       { key: 'automation', href: '/automation', labelAr: 'الأتمتة', labelEn: 'Automation', icon: 'campaigns', roles: ['admin'] },
       { key: 'campaigns', href: '/marketing', labelAr: 'الحملات', labelEn: 'Campaigns', icon: 'campaigns', roles: ['admin'] },
@@ -77,6 +82,7 @@ const GROUPS: NavGroup[] = [
     labelEn: 'Management',
     items: [
       { key: 'accounting', href: '/finance', labelAr: 'المحاسبة', labelEn: 'Accounting', icon: 'accounting', roles: ['admin'] },
+      { key: 'approvals', href: '/approvals', labelAr: 'موافقات الذكاء', labelEn: 'AI Approvals', icon: 'approvals', roles: ['admin'] },
       { key: 'staff', href: '/staff', labelAr: 'الموظفون', labelEn: 'Staff', icon: 'staff', roles: ['admin'] },
       { key: 'analytics', href: '/analytics', labelAr: 'التحليلات', labelEn: 'Analytics', icon: 'reports', roles: ['admin', 'employee'] },
       { key: 'reports', href: '/ceo', labelAr: 'لوحة الرئيس', labelEn: 'Executive', icon: 'reports', roles: ['admin'] },

@@ -173,6 +173,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.59.0
         version: 5.101.0(react@19.0.0)
+      bwip-js:
+        specifier: ^4
+        version: 4.11.1
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -1242,7 +1245,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@0.22.28':
     resolution: {integrity: sha512-lvt72KNitGuixYD2l3SZmRKVu2G4zJpmg5V7WfUBNpmUU5oODBw/6qmiJ6kSLAlfDozscUk+BBGknBBzxUrwrA==}
@@ -3084,6 +3087,10 @@ packages:
 
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
+
+  bwip-js@4.11.1:
+    resolution: {integrity: sha512-9KCjsJF/VSETOS6jPgNxd6X9yCHTbqcm2zccDceX7bOmxDDjQ92V9S+iFf+UD5+hijUZDw7SFsYT7vL2rW7qcQ==}
+    hasBin: true
 
   bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
@@ -10433,6 +10440,8 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
+
+  bwip-js@4.11.1: {}
 
   bytes@3.1.2: {}
 
