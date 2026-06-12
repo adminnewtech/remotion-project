@@ -63,4 +63,4 @@ pnpm db:push                      # apply migrations to your Supabase project
 pnpm dev                          # run web + mobile in parallel (turbo)
 ```
 
-> **Status:** Full code scaffold is in place across all packages and apps (web, mobile, edge functions, schema, design system, i18n). It has **not** been `pnpm install`ed or typechecked yet, and live infrastructure (Supabase project, Vercel) is **not** provisioned — connect keys in `.env.local` and follow the roadmap's *Provisioning checklist* to bring it online.
+> **Status (2026-06-12):** **LIVE.** 26 migrations on Supabase `elite-v1`, 10 edge functions deployed, web on Vercel (production = `master`). Full native admin OS: orders+audit trail, multi-location inventory ledger, purchasing+serials, RMA, POS+quotes, CRM-360+segments+notes, loyalty, dispatch+live GPS map+SLA, appointments, invoices/packing, settings/zones, **double-entry accounting (auto-posting)**, **CRM automation engine** — 55+ unit tests + 16 admin e2e in CI. Dev guide: `docs/DEVELOPMENT.md` · plan: `docs/INTEGRATED_OS_BLUEPRINT.md` · AI grounding: `CLAUDE.md`.
