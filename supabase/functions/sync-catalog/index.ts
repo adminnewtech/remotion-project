@@ -134,12 +134,29 @@ async function run(): Promise<SyncSummary> {
         INSTALL_CATEGORIES.has(categorySlug) || INSTALL_HINTS.some((h) => title.includes(h));
       const description = cleanDescription(p.descriptionHtml);
 
-      // Insert vs preserve-curation update (match by slug).
-      const { data: existing } = await db.from("products").select("id").eq("slug", slug).maybeSingle();
+      // Insert vs preserve-curation update. Match by SKU first (robust — our
+      // curated slugs don't always equal the Shopify handle), then by slug.
+      const rawSkus = p.variants.edges
+        .map((e) => (e.node.sku ?? "").trim())
+        .filter((s) => s.length > 0);
+      let existingId: string | null = null;
+      if (rawSkus.length) {
+        const { data: vmatch } = await db
+          .from("product_variants")
+          .select("product_id")
+          .in("sku", rawSkus)
+          .limit(1)
+          .maybeSingle();
+        if (vmatch?.product_id) existingId = vmatch.product_id as string;
+      }
+      if (!existingId) {
+        const { data: existing } = await db.from("products").select("id").eq("slug", slug).maybeSingle();
+        if (existing?.id) existingId = existing.id as string;
+      }
 
       let productId: string;
-      if (existing?.id) {
-        productId = existing.id as string;
+      if (existingId) {
+        productId = existingId;
         await db
           .from("products")
           .update({
